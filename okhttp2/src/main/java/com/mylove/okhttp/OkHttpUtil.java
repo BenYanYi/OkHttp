@@ -3,8 +3,6 @@ package com.mylove.okhttp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import java.util.Map;
-
 /**
  * @author myLove
  * @time 2017/11/2 14:41
@@ -45,10 +43,5 @@ public class OkHttpUtil {
 
     public AutoRequest postAll(String url) {
         return AutoRequest.getInstance(mContext, url, RequestType.UP_FILE);
-    }
-
-    @Deprecated
-    public void postRequest(String url, Map<Object, Object> oMap, final onOkHttpListener<String, String> onOkHttpListener) {
-//        request(url, oMap, onOkHttpListener);
     }
 }
