@@ -3,8 +3,7 @@ package com.mylove.okhttp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import com.mylove.baselib.log.JLog;
-import com.mylove.baselib.utils.FormatUtil;
+import com.mylove.loglib.JLog;
 
 import java.io.File;
 import java.util.Map;
