@@ -20,4 +20,4 @@ project 下添加
 
 <br/>
 
-如果需要使用Jlog，可以查看https://github.com/love-yanyi/Logger(https://github.com/love-yanyi/Logger)
+如果需要使用Jlog，可以查看https://github.com/love-yanyi/Logger
