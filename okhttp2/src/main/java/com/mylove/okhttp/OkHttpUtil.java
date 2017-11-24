@@ -44,4 +44,8 @@ public class OkHttpUtil {
     public AutoRequest postAll(String url) {
         return AutoRequest.getInstance(mContext, url, RequestType.UP_FILE);
     }
+
+    public DownloadRequest downloadFile(String url) {
+        return DownloadRequest.getInstance(mContext, url, RequestType.GET);
+    }
 }

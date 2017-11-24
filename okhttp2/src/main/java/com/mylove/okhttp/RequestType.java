@@ -11,5 +11,5 @@ enum RequestType {
     GET,
     POST,
     UP_FILE,
-    ALL
+    ALL,
 }

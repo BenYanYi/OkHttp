@@ -19,10 +19,10 @@ import java.util.regex.Pattern;
 /**
  * 字符串工具类
  */
-public class FormatUtil {
+ class FormatUtil {
 
 
-    public static final String EMPTY = "";
+     static final String EMPTY = "";
 
     /**
      * 判断字符串是否为空
@@ -30,7 +30,7 @@ public class FormatUtil {
      * @param str
      * @return true 不为空, false 为空
      */
-    public static boolean isNotEmpty(String str) {
+     static boolean isNotEmpty(String str) {
         return str != null && !"null".equals(str) && str.trim().length() != 0;
     }
 
@@ -40,55 +40,55 @@ public class FormatUtil {
      * @param str
      * @return true 为空，false 不为空
      */
-    public static boolean isEmpty(String str) {
+     static boolean isEmpty(String str) {
         return str == null || "null".equals(str) || str.trim().length() == 0;
     }
 
-    public static final SimpleDateFormat dateformat = new SimpleDateFormat("HH:mm", Locale.CHINA);
+     static final SimpleDateFormat dateformat = new SimpleDateFormat("HH:mm", Locale.CHINA);
 
-    public static String getCurrentTime() {
+     static String getCurrentTime() {
         return dateformat.format(new Date());
     }
 
-    public static final SimpleDateFormat sdformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
+     static final SimpleDateFormat sdformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
 
-    public static String formatDateTime(long millseconds) {
+     static String formatDateTime(long millseconds) {
         return sdformat.format(new Date(millseconds));
     }
 
-    public static String getCurrentDateTime() {
+     static String getCurrentDateTime() {
         return sdformat.format(new Date());
     }
 
     /**
      * 判断集合是否为空
      */
-    public static <T> boolean isCollectionsNotEmpty(Collection<T> collection) {
+     static <T> boolean isCollectionsNotEmpty(Collection<T> collection) {
         return collection != null && collection.size() > 0;
     }
 
     /**
      * 判断MAP是否为空
      */
-    public static <K, V> boolean isMapNotEmpty(Map<K, V> map) {
+     static <K, V> boolean isMapNotEmpty(Map<K, V> map) {
         return map != null && map.size() > 0;
     }
 
     /**
      * 判断List是否为空
      */
-    public static boolean isListEmpty(List<?> array) {
+     static boolean isListEmpty(List<?> array) {
         return array != null && array.size() == 0;
     }
 
     /**
      * 判断JSON数组是否为空
      */
-    public static boolean isJSONArrayEmpty(JSONArray array) {
+     static boolean isJSONArrayEmpty(JSONArray array) {
         return array == null || array.length() == 0;
     }
 
-    public static boolean isObjectNotNull(Object object) {
+     static boolean isObjectNotNull(Object object) {
         if (object != null && object.getClass().isArray()) {
             // 如果是数组类型
             throw new UnsupportedOperationException("isObjectNotNull not supported operation :" + object);
@@ -99,32 +99,32 @@ public class FormatUtil {
     /**
      * 判断JSON数据不空为
      */
-    public static boolean isJSONArrayNotEmpty(JSONArray array) {
+     static boolean isJSONArrayNotEmpty(JSONArray array) {
         return array != null && array.length() > 0;
     }
 
     /**
      * 判断JSON数组是否为空
      */
-    public static boolean isJSONObjectEmpty(JSONObject object) {
+     static boolean isJSONObjectEmpty(JSONObject object) {
         return object == null || object.length() == 0;
     }
 
     /**
      * 判断JSON数据不空为
      */
-    public static boolean isJSONObjectNotEmpty(JSONObject object) {
+     static boolean isJSONObjectNotEmpty(JSONObject object) {
         return object != null && object.length() > 0;
     }
 
-    public static boolean isIntArrayNotEmpty(int[] array) {
+     static boolean isIntArrayNotEmpty(int[] array) {
         return array != null && array.length > 0;
     }
 
     /**
      * 判断List数据不空为
      */
-    public static boolean isListNotEmpty(List<?> array) {
+     static boolean isListNotEmpty(List<?> array) {
         return array != null && array.size() > 0;
     }
 
@@ -134,7 +134,7 @@ public class FormatUtil {
      * @param array
      * @return
      */
-    public static boolean isLongArrayNotEmpty(long[] array) {
+     static boolean isLongArrayNotEmpty(long[] array) {
         return array != null && array.length > 0;
     }
 
@@ -144,7 +144,7 @@ public class FormatUtil {
      * @param array
      * @return
      */
-    public static boolean isFloatArrayNotEmpty(float[] array) {
+     static boolean isFloatArrayNotEmpty(float[] array) {
         return array != null && array.length > 0;
     }
 
@@ -154,7 +154,7 @@ public class FormatUtil {
      * @param array
      * @return
      */
-    public static boolean isDoubleArrayNotEmpty(double[] array) {
+     static boolean isDoubleArrayNotEmpty(double[] array) {
         return array != null && array.length > 0;
     }
 
@@ -164,25 +164,25 @@ public class FormatUtil {
      * @param cardNum
      * @return 返回是否包含
      */
-    public static boolean isJudge(String cardNum) {
+     static boolean isJudge(String cardNum) {
         String regex = ".*[a-zA-Z]+.*";
         Matcher m = Pattern.compile(regex).matcher(cardNum);
         return m.matches();
     }
 
-    public static boolean isNotBlank(String str) {
+     static boolean isNotBlank(String str) {
         return (str != null) && (str.length() != 0);
     }
 
-    public static boolean isBlank(String str) {
+     static boolean isBlank(String str) {
         return (str == null) || (str.length() == 0);
     }
 
-    public static boolean isNotTrimBlank(String str) {
+     static boolean isNotTrimBlank(String str) {
         return (str != null) && (str.trim().length() != 0);
     }
 
-    public static boolean isTrimBlank(String str) {
+     static boolean isTrimBlank(String str) {
         return (str == null) || (str.trim().length() == 0);
     }
 
@@ -192,7 +192,7 @@ public class FormatUtil {
      * @param idNo
      * @return
      */
-    public static boolean isIdNo(String idNo) {
+     static boolean isIdNo(String idNo) {
 //        if (isTrimBlank(idNo))
 //        {
 //            return false;
@@ -214,7 +214,7 @@ public class FormatUtil {
      * @param mobiles
      * @return
      */
-    public static boolean isNotMobileNO(String mobiles) {
+     static boolean isNotMobileNO(String mobiles) {
 //        Pattern p = Pattern.compile("^((13[0-9])|(15[^4,\\D])|(18[0,5-9]))\\d{8}$");
         Pattern p = Pattern.compile("^((1[358][0-9])|(14[57])|(17[0678]))\\d{8}$");
         Matcher m = p.matcher(mobiles);
@@ -227,7 +227,7 @@ public class FormatUtil {
      * @param email
      * @return
      */
-    public static boolean isEmail(String email) {
+     static boolean isEmail(String email) {
         if (isTrimBlank(email)) {
             return false;
         }
@@ -243,7 +243,7 @@ public class FormatUtil {
      * @param source
      * @return
      */
-    public static String htmlEscapeCharsToString(String source) {
+     static String htmlEscapeCharsToString(String source) {
         return FormatUtil.isEmpty(source) ? source : source.replaceAll("&lt;", "<")
                 .replaceAll("&gt;", ">")
                 .replaceAll("&amp;", "&")
@@ -264,7 +264,7 @@ public class FormatUtil {
      * @param id
      * @return
      */
-    public static boolean isNotUserName(String id) {
+     static boolean isNotUserName(String id) {
         if (isTrimBlank(id)) {
             return false;
         }
@@ -274,7 +274,7 @@ public class FormatUtil {
         return !m.find();
     }
 
-    public static boolean isNotPassWord(String password) {
+     static boolean isNotPassWord(String password) {
         if (isTrimBlank(password)) {
             return false;
         }
@@ -290,7 +290,7 @@ public class FormatUtil {
      * @param bankCard
      * @return
      */
-    public static boolean isNotBank(String bankCard) {
+     static boolean isNotBank(String bankCard) {
         if (isTrimBlank(bankCard)) {
             return false;
         }
@@ -306,7 +306,7 @@ public class FormatUtil {
      * @param str
      * @return
      */
-    public static String isStringFormat(Context context, int resId, String str) {
+     static String isStringFormat(Context context, int resId, String str) {
         return String.format(context.getResources().getString(resId), str);
     }
 
@@ -317,7 +317,7 @@ public class FormatUtil {
      * @param resId
      * @return
      */
-    public static String getFromRaw(Context context, int resId) {
+     static String getFromRaw(Context context, int resId) {
         try {
             InputStreamReader inputReader = new InputStreamReader(context.getResources().openRawResource(resId));
             BufferedReader bufReader = new BufferedReader(inputReader);
@@ -333,7 +333,7 @@ public class FormatUtil {
     }
 
     // 直接从assets读取
-    public static String getFromAssets(Context context, String fileName) {
+     static String getFromAssets(Context context, String fileName) {
         try {
             InputStreamReader inputReader = new InputStreamReader(context.getResources().getAssets().open(fileName));
             BufferedReader bufReader = new BufferedReader(inputReader);
