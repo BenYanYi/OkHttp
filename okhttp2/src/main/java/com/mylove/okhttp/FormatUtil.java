@@ -339,8 +339,9 @@ import java.util.regex.Pattern;
             BufferedReader bufReader = new BufferedReader(inputReader);
             String line = "";
             StringBuilder Result = new StringBuilder();
-            while ((line = bufReader.readLine()) != null)
+            while ((line = bufReader.readLine()) != null) {
                 Result.append(line);
+            }
             return Result.toString();
         } catch (Exception e) {
             e.printStackTrace();

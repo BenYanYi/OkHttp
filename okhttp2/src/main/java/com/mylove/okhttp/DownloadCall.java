@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.mylove.loglib.JLog;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,14 +30,15 @@ class DownloadCall {
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
     private String url;
-    private Subscriber<? super String> subscriber;
+    private Subscriber<? super ResultMsg> subscriber;
     private Call call;
     @SuppressLint("StaticFieldLeak")
     private static DownloadCall instance;
     private CallType callType;
     private static OkHttpClient okHttpClient;
+    private String fileName;
 
-    private DownloadCall(String url, Request request, Subscriber<? super String> subscriber, CallType callType) {
+    private DownloadCall(String url, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
         this.url = url;
         this.subscriber = subscriber;
         this.call = okHttpClient.newCall(request);
@@ -56,7 +55,7 @@ class DownloadCall {
      * @param callType   请求类型
      * @return
      */
-    static DownloadCall getInstance(Context context, String mCacheUrl, Request request, Subscriber<? super String> subscriber, CallType callType) {
+    static DownloadCall getInstance(Context context, String mCacheUrl, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
         if (instance == null) {
             synchronized (DownloadCall.class) {
                 if (instance == null) {
@@ -75,11 +74,15 @@ class DownloadCall {
         return instance;
     }
 
+    DownloadCall setFileName(String fileName) {
+        this.fileName = fileName;
+        return this;
+    }
+
     /**
      * 请求
      */
     void sendCall() {
-        JLog.v();
         if (callType == CallType.SYNC) {
             sync();
         } else if (callType == CallType.ASYNC) {
@@ -94,19 +97,14 @@ class DownloadCall {
         try {
             Response execute = call.execute();
             if (execute.isSuccessful()) {
-                JLog.v();
                 save(execute.body());
             } else {
-                JLog.v();
-                subscriber.onCompleted();
                 subscriber.onError(new Error("请求失败"));
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            JLog.v(e.getMessage());
-            subscriber.onCompleted();
-            subscriber.onError(new Error(e.getMessage()));
+            subscriber.onError(e);
         }
+        subscriber.onCompleted();
     }
 
     /**
@@ -114,11 +112,13 @@ class DownloadCall {
      */
     private void async() {
         call.enqueue(new Callback() {
+            @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                subscriber.onError(e);
                 subscriber.onCompleted();
-                subscriber.onError(new Error(e.getMessage()));
             }
 
+            @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 save(response.body());
             }
@@ -131,40 +131,39 @@ class DownloadCall {
      * @param body
      */
     private void save(ResponseBody body) {
-        int lastIndexOf = url.lastIndexOf("/");
-        String pathStr = url.subSequence(lastIndexOf + 1, url.length()).toString();
+        if (null == fileName && "".equals(fileName) && fileName.length() <= 0) {
+            int lastIndexOf = url.lastIndexOf("/");
+            String pathStr = url.subSequence(lastIndexOf + 1, url.length()).toString();
+            fileName = FileUtil.getSDPath() + "/" + mContext.getPackageName() + "/" + pathStr;
+        }
+        File file = new File(fileName);
         InputStream is = null;
         FileOutputStream fos = null;
-        String path = FileUtil.getSDPath() + "/" + mContext.getPackageName() + "/" + pathStr;
-        File file = new File(path);
         try {
-//            FileUtil.saveImage(bitmap, path);
             byte[] buf = new byte[2048];
             int len;
-//            long total = body.contentLength();
-//            long current = 0;
             is = body.byteStream();
             fos = new FileOutputStream(file);
             while ((len = is.read(buf)) != -1) {
-//                current += len;
                 fos.write(buf, 0, len);
             }
             fos.flush();
-            subscriber.onNext(path);
+            ResultMsg msg = new ResultMsg();
+            msg.setCode("200");
+            msg.setResult(fileName);
+            subscriber.onNext(msg);
         } catch (Exception e) {
-            e.printStackTrace();
-            subscriber.onError(new Error(e.getMessage()));
-        }finally {
+            subscriber.onError(e);
+        } finally {
             try {
-            if (is!=null){
-                is.close();
-            }
-            if (fos!=null){
-                fos.close();
-            }
-            }catch (Exception e){
-                e.printStackTrace();
-                subscriber.onError(new Error(e.getMessage()));
+                if (is != null) {
+                    is.close();
+                }
+                if (fos != null) {
+                    fos.close();
+                }
+            } catch (Exception e) {
+                subscriber.onError(e);
             }
         }
         subscriber.onCompleted();

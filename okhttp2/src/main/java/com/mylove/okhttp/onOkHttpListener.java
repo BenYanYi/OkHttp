@@ -7,10 +7,10 @@ package com.mylove.okhttp;
  * @overview
  */
 
-public interface onOkHttpListener<K, T> {
+public interface onOkHttpListener {
     void onCompleted();
 
-    void onSuccess(K k);
+    void onSuccess(ResultMsg requestMsg);
 
-    void onFailure(T t);
+    void onFailure(Throwable t);
 }

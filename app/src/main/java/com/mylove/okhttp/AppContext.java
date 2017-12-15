@@ -15,7 +15,6 @@ public class AppContext extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        JLog.init(BuildConfig.LOG_DEBUG);
         JLog.init(true);
     }
 }

@@ -46,8 +46,9 @@ class FileUtil {
             JLog.v(substring);
             if (substring.equals("png")) {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            } else
+            } else {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            }
             fos.flush();
             fos.close();
         } catch (Exception e) {

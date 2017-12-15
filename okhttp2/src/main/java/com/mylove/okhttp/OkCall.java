@@ -26,14 +26,14 @@ class OkCall {
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
     private String mCacheUrl;
-    private Subscriber<? super String> subscriber;
+    private Subscriber<? super ResultMsg> subscriber;
     private Call call;
     @SuppressLint("StaticFieldLeak")
     private static OkCall instance;
     private CallType callType;
     private static OkHttpClient okHttpClient;
 
-    private OkCall(String mCacheUrl, Request request, Subscriber<? super String> subscriber, CallType callType) {
+    private OkCall(String mCacheUrl, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
         this.mCacheUrl = mCacheUrl;
         this.subscriber = subscriber;
         this.call = okHttpClient.newCall(request);
@@ -50,10 +50,10 @@ class OkCall {
      * @param callType   请求类型
      * @return
      */
-    public static OkCall getInstance(Context context, String mCacheUrl, Request request, Subscriber<? super String> subscriber, CallType callType) {
-        if (instance == null) {
-            synchronized (OkCall.class) {
-                if (instance == null) {
+    public static OkCall getInstance(Context context, String mCacheUrl, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
+//        if (instance == null) {
+//            synchronized (OkCall.class) {
+//                if (instance == null) {
                     mContext = context;
                     OkHttpClient httpClient = new OkHttpClient();
                     okHttpClient = httpClient.newBuilder()
@@ -63,9 +63,9 @@ class OkCall {
                             .readTimeout(30, TimeUnit.SECONDS)
                             .build();
                     instance = new OkCall(mCacheUrl, request, subscriber, callType);
-                }
-            }
-        }
+//                }
+//            }
+//        }
         return instance;
     }
 
@@ -81,69 +81,84 @@ class OkCall {
     }
 
     /**
-     * 异步请求
+     * 同步请求
      */
     private void sync() {
         try {
             Response execute = call.execute();
+            ResultMsg msg = new ResultMsg();
+            int code = execute.code();
+            msg.setCode(code + "");
+            msg.setResult("");
             if (execute.isSuccessful()) {
                 String str = execute.body().string();
-                if (str.contains("<!DOCTYPE html>")) {
-                    subscriber.onError(new Exception("接口错误"));
-                } else {
+                msg.setResult(str);
+                if (!str.contains("<!DOCTYPE html>")) {
                     if (FormatUtil.isNotEmpty(mCacheUrl)) {
                         CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
                     }
-                    subscriber.onNext(str);
-                    subscriber.onCompleted();
                 }
+                subscriber.onNext(msg);
+                subscriber.onCompleted();
             } else {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
-                    subscriber.onNext(json);
-                    subscriber.onCompleted();
+                    msg.setResult(json);
+                    subscriber.onNext(msg);
                 } else {
                     subscriber.onError(new Exception("请求失败"));
                 }
+                subscriber.onCompleted();
             }
         } catch (IOException e) {
-            e.printStackTrace();
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
+            ResultMsg msg = new ResultMsg();
+            msg.setCode("404");
             if (FormatUtil.isNotEmpty(json)) {
-                subscriber.onNext(json);
-                subscriber.onCompleted();
+                msg.setResult(json);
+                subscriber.onNext(msg);
             } else {
-                subscriber.onError(new Exception(e.getMessage()));
+                subscriber.onError(e);
             }
+            e.printStackTrace();
+            subscriber.onCompleted();
         }
     }
 
     /**
-     * 同步请求
+     * 异步请求
      */
     private void async() {
         call.enqueue(new Callback() {
+            @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
+                ResultMsg msg = new ResultMsg();
+                msg.setCode("404");
                 if (FormatUtil.isNotEmpty(json)) {
-                    subscriber.onNext(json);
-                    subscriber.onCompleted();
+                    msg.setResult(json);
+                    subscriber.onNext(msg);
                 } else {
-                    subscriber.onError(new Exception(e.getMessage()));
+                    subscriber.onError(e);
                 }
+                e.printStackTrace();
+                subscriber.onCompleted();
             }
 
+            @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String str = response.body().string();
-                if (str.contains("<!DOCTYPE html>")) {
-                    subscriber.onError(new Exception("接口错误"));
-                } else {
+                ResultMsg msg = new ResultMsg();
+                int code = response.code();
+                msg.setCode(code + "");
+                msg.setResult(str);
+                if (!str.contains("<!DOCTYPE html>")) {
                     if (FormatUtil.isNotEmpty(mCacheUrl)) {
                         CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
                     }
-                    subscriber.onNext(str);
-                    subscriber.onCompleted();
                 }
+                subscriber.onNext(msg);
+                subscriber.onCompleted();
             }
         });
     }

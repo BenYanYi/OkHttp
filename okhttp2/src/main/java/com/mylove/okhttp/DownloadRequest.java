@@ -34,11 +34,19 @@ public class DownloadRequest {
         return instance;
     }
 
-    public void sync(Map<Object, Object> oMap, onOkHttpListener<String, String> onOkHttpListener) {
+    public void sync(Map<Object, Object> oMap, onOkHttpListener onOkHttpListener) {
         DownloadObservable.getInstance(mContext, requestType, CallType.SYNC).request(url, oMap, onOkHttpListener);
     }
 
-    public void async(Map<Object, Object> oMap, onOkHttpListener<String, String> onOkHttpListener) {
+    public void sync(Map<Object, Object> oMap, String fileName, onOkHttpListener onOkHttpListener) {
+        DownloadObservable.getInstance(mContext, fileName, requestType, CallType.SYNC).request(url, oMap, onOkHttpListener);
+    }
+
+    public void async(Map<Object, Object> oMap, onOkHttpListener onOkHttpListener) {
         DownloadObservable.getInstance(mContext, requestType, CallType.ASYNC).request(url, oMap, onOkHttpListener);
+    }
+
+    public void async(Map<Object, Object> oMap, String fileName, onOkHttpListener onOkHttpListener) {
+        DownloadObservable.getInstance(mContext, fileName, requestType, CallType.ASYNC).request(url, oMap, onOkHttpListener);
     }
 }

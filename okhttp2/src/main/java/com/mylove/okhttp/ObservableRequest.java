@@ -3,8 +3,6 @@ package com.mylove.okhttp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import com.mylove.loglib.JLog;
-
 import java.io.File;
 import java.util.Map;
 
@@ -48,49 +46,57 @@ class ObservableRequest {
         return instance;
     }
 
-    void request(String url, Map<Object, Object> oMap, final onOkHttpListener<String, String> onOkHttpListener) {
+    void request(String url, Map<Object, Object> oMap, final onOkHttpListener onOkHttpListener) {
         getObservable(url, oMap).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<String>() {
+                .subscribe(new Subscriber<ResultMsg>() {
+                    @Override
                     public void onCompleted() {
                         onOkHttpListener.onCompleted();
                     }
 
+                    @Override
                     public void onError(Throwable e) {
-                        onOkHttpListener.onFailure(e.getMessage());
+                        onOkHttpListener.onFailure(e);
                     }
 
-                    public void onNext(String s) {
+                    @Override
+                    public void onNext(ResultMsg s) {
                         onOkHttpListener.onSuccess(s);
                     }
                 });
     }
 
-    private Observable<String> getObservable(final String url, final Map<Object, Object> oMap) {
-        return Observable.create(new Observable.OnSubscribe<String>() {
-            public void call(Subscriber<? super String> subscriber) {
+    private Observable<ResultMsg> getObservable(final String url, final Map<Object, Object> oMap) {
+        return Observable.create(new Observable.OnSubscribe<ResultMsg>() {
+            @Override
+            public void call(Subscriber<? super ResultMsg> subscriber) {
                 send(url, oMap, subscriber);
             }
         });
     }
 
-    private void send(final String url, final Map<Object, Object> oMap, final Subscriber<? super String> subscriber) {
+    private void send(final String url, final Map<Object, Object> oMap, final Subscriber<? super ResultMsg> subscriber) {
         final String mCacheUrl;
         if (FormatUtil.isMapNotEmpty(oMap)) {
             mCacheUrl = url + oMap.toString();
         } else {
             mCacheUrl = url;
         }
-        if (Internet.ifInternet(mContext)) {
+        InternetBean bean = Internet.ifInternet(mContext);
+        if (bean.getStatus()) {
             Request request = getRequest(url, oMap);
             OkCall.getInstance(mContext, mCacheUrl, request, subscriber, callType).sendCall();
         } else {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
             if (FormatUtil.isNotEmpty(json)) {
-                subscriber.onNext(json);
-                subscriber.onCompleted();
+                ResultMsg msg = new ResultMsg();
+                msg.setCode("404");
+                msg.setResult(json);
+                subscriber.onNext(msg);
             } else {
-                subscriber.onError(new Error("网络错误"));
+                subscriber.onError(new Error(bean.getMsg()));
             }
+            subscriber.onCompleted();
         }
     }
 
@@ -210,7 +216,6 @@ class ObservableRequest {
         if (FormatUtil.isMapNotEmpty(oMap)) {
             for (Map.Entry<Object, Object> entry : oMap.entrySet()) {
                 builder.add(entry.getKey().toString(), entry.getValue().toString());
-                JLog.i(entry.getKey() + "\t" + entry.getValue());
             }
         }
         FormBody build = builder.build();

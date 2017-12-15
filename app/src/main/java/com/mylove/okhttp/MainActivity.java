@@ -8,6 +8,9 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.mylove.loglib.JLog;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import didikee.com.permissionshelper.PermissionsHelper;
 import didikee.com.permissionshelper.permission.DangerousPermissions;
 
@@ -21,7 +24,9 @@ import didikee.com.permissionshelper.permission.DangerousPermissions;
 
 public class MainActivity extends AppCompatActivity {
 
-    // app所需要的全部危险权限
+    /**
+     * app所需要的全部危险权限
+     */
     static final String[] PERMISSIONS = new String[]{DangerousPermissions.STORAGE};
     private PermissionsHelper permissionsHelper;
 
@@ -32,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setPermissions();
     }
 
-    private void setPermissions(){
+    private void setPermissions() {
         permissionsHelper = new PermissionsHelper(this, PERMISSIONS, true);
         if (permissionsHelper.checkAllPermissions(PERMISSIONS)) {
             permissionsHelper.onDestroy();
@@ -59,12 +64,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             //用户已经永久的拒绝了
+            @Override
             public void hasLockForever() {
                 JLog.i("hasLockForever");
                 permissionsHelper.setParams(null);
             }
 
             //被拒绝后,在最后一次申请权限之前
+            @Override
             public void onBeforeRequestFinalPermissions(PermissionsHelper helper) {
                 JLog.i();
                 helper.continueRequestPermissions();
@@ -73,38 +80,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void data() {
-        String url = "https://www.yjw1020.club/index/img/Ta_01.jpg";
-        JLog.v(url);
-        OkHttpUtil.getInstance(this).downloadFile(url).sync(null, new onOkHttpListener<String, String>() {
+        String url = "http://123.56.176.15:8890/SunshineMedicineWebservice/SunshineMedicineWebservice.asmx/_getDeptUploadSQL";
+        Map<Object, Object> oMap = new HashMap<>();
+        oMap.put("strDeptSN", "MDI6MDA6MDA6MDA6MDA6MDA=");
+        oMap.put("strDeptKind", "1");
+        int[] ints = new int[]{11, 12, 13, 14, 15};
+        for (int i : ints) {
+            oMap.put("strDataKind", i + "");
+            OkHttpUtil.getInstance(this).post(url).async(oMap, new onOkHttpListener() {
+                @Override
+                public void onCompleted() {
 
-            public void onCompleted() {
+                }
 
-            }
+                @Override
+                public void onSuccess(ResultMsg requestMsg) {
+                    JLog.v(requestMsg);
+                }
 
-            public void onSuccess(String s) {
-                JLog.v(s);
-            }
-
-            public void onFailure(String s) {
-                JLog.v(s);
-            }
-        });
-//        String url = "https://www.yjw1020.club/api/myIndex.php";
-//        Map<Object, Object> oMap = new HashMap<>();
-//        oMap.put("type", "1");
-//        OkHttpUtil.getInstance(this).post(url).async(oMap, new onOkHttpListener<String, String>() {
+                @Override
+                public void onFailure(Throwable t) {
+                    JLog.v(t);
+                }
+            });
+        }
+//        String url = "https://www.yjw1020.club/index/img/Ta_01.jpg";
+//        OkHttpUtil.getInstance(this).downloadFile(url).sync(null, new onOkHttpListener() {
+//
+//            @Override
 //            public void onCompleted() {
+//
 //            }
 //
-//            public void onSuccess(String s) {
+//            @Override
+//            public void onSuccess(ResultMsg s) {
 //                JLog.v(s);
 //            }
 //
-//            public void onFailure(String s) {
+//            @Override
+//            public void onFailure(Throwable s) {
 //                JLog.v(s);
 //            }
 //        });
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {

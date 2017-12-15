@@ -2,8 +2,6 @@ package com.mylove.okhttp;
 
 import android.content.Context;
 
-import com.mylove.loglib.JLog;
-
 
 /**
  * @author myLove
@@ -16,38 +14,39 @@ class Internet {
     /**
      * 判断网络
      */
-    static boolean ifInternet(Context mContext) {
+    static InternetBean ifInternet(Context mContext) {
+        InternetBean msg = new InternetBean();
         switch (InternetUtil.getConnectedType(mContext)) {
             case -1:
-                JLog.d();
-                ShowToast.getInstance(mContext).show("网络异常");
-                return false;
+                msg.setStatus(false);
+                msg.setMsg("网络异常");
+                return msg;
             case 0:
                 if (!InternetUtil.isNetWorkConnected(mContext)) {
-                    ShowToast.getInstance(mContext).show("网络异常");
-                    JLog.d();
-                    return false;
+                    msg.setStatus(false);
+                    msg.setMsg("网络异常");
+                    return msg;
                 } else {
-                    JLog.d();
-                    return true;
+                    msg.setStatus(true);
+                    return msg;
                 }
             case 1:
                 if (!InternetUtil.isNetWorkConnected(mContext)) {
-                    ShowToast.getInstance(mContext).show("WIFI网络异常");
-                    JLog.d();
-                    return false;
+                    msg.setStatus(false);
+                    msg.setMsg("WIFI网络异常");
+                    return msg;
                 } else {
-                    JLog.d();
-                    return true;
+                    msg.setStatus(true);
+                    return msg;
                 }
             default:
                 if (!InternetUtil.isNetWorkConnected(mContext)) {
-                    ShowToast.getInstance(mContext).show("网络异常");
-                    JLog.d();
-                    return false;
+                    msg.setStatus(false);
+                    msg.setMsg("网络异常");
+                    return msg;
                 } else {
-                    JLog.d();
-                    return true;
+                    msg.setStatus(true);
+                    return msg;
                 }
         }
     }

@@ -34,11 +34,11 @@ public class AutoRequest {
         return instance;
     }
 
-    public void sync(Map<Object, Object> oMap, onOkHttpListener<String, String> onOkHttpListener) {
+    public void sync(Map<Object, Object> oMap, onOkHttpListener onOkHttpListener) {
         ObservableRequest.getInstance(mContext, requestType, CallType.SYNC).request(url, oMap, onOkHttpListener);
     }
 
-    public void async(Map<Object, Object> oMap, onOkHttpListener<String, String> onOkHttpListener) {
+    public void async(Map<Object, Object> oMap, onOkHttpListener onOkHttpListener) {
         ObservableRequest.getInstance(mContext, requestType, CallType.ASYNC).request(url, oMap, onOkHttpListener);
     }
 }

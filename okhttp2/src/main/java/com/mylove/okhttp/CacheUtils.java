@@ -44,7 +44,7 @@ class CacheUtils {
      * @param url  文件名
      * @param json
      */
-    public void setCacheToLocalJson(String url, String json) {
+    void setCacheToLocalJson(String url, String json) {
         String urlMD5 = MD5keyUtil.newInstance().getkeyBeanofStr(url);
         String path = realFile.getAbsolutePath() + "/" + urlMD5;
         try {
@@ -71,7 +71,7 @@ class CacheUtils {
      * @param url
      * @return
      */
-    public String getCacheToLocalJson(String url) {
+    String getCacheToLocalJson(String url) {
         StringBuffer sb = new StringBuffer();
         String urlMD5 = MD5keyUtil.newInstance().getkeyBeanofStr(url);
         // 创建缓存文件夹

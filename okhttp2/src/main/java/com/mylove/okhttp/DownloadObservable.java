@@ -26,6 +26,25 @@ class DownloadObservable {
     private static Context mContext;
     private static RequestType requestType;
     private static CallType callType;
+    private static String fileName;
+
+    private DownloadObservable() {
+    }
+
+    static DownloadObservable getInstance(Context context, String file, RequestType type1, CallType type2) {
+        if (instance == null) {
+            synchronized (DownloadObservable.class) {
+                if (instance == null) {
+                    instance = new DownloadObservable();
+                    mContext = context;
+                    requestType = type1;
+                    callType = type2;
+                    fileName = file;
+                }
+            }
+        }
+        return instance;
+    }
 
     static DownloadObservable getInstance(Context context, RequestType type1, CallType type2) {
         if (instance == null) {
@@ -41,38 +60,47 @@ class DownloadObservable {
         return instance;
     }
 
-    void request(String url, Map<Object, Object> oMap, final onOkHttpListener<String, String> onOkHttpListener) {
+    void request(String url, Map<Object, Object> oMap, final onOkHttpListener onOkHttpListener) {
         getObservable(url, oMap).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<String>() {
+                .subscribe(new Subscriber<ResultMsg>() {
+                    @Override
                     public void onCompleted() {
                         onOkHttpListener.onCompleted();
                     }
 
+                    @Override
                     public void onError(Throwable e) {
-                        onOkHttpListener.onFailure(e.getMessage());
+                        onOkHttpListener.onFailure(e);
                     }
 
-                    public void onNext(String s) {
+                    @Override
+                    public void onNext(ResultMsg s) {
                         onOkHttpListener.onSuccess(s);
                     }
                 });
     }
 
-    private Observable<String> getObservable(final String url, final Map<Object, Object> oMap) {
-        return Observable.create(new Observable.OnSubscribe<String>() {
-            public void call(Subscriber<? super String> subscriber) {
+    private Observable<ResultMsg> getObservable(final String url, final Map<Object, Object> oMap) {
+        return Observable.create(new Observable.OnSubscribe<ResultMsg>() {
+            @Override
+            public void call(Subscriber<? super ResultMsg> subscriber) {
                 send(url, oMap, subscriber);
             }
         });
     }
 
-    private void send(final String url, final Map<Object, Object> oMap, final Subscriber<? super String> subscriber) {
-        if (Internet.ifInternet(mContext)) {
+    private void send(final String url, final Map<Object, Object> oMap, final Subscriber<? super ResultMsg> subscriber) {
+        InternetBean bean = Internet.ifInternet(mContext);
+        if (bean.getStatus()) {
             Request request = getRequest(url, oMap);
-            DownloadCall.getInstance(mContext, url, request, subscriber, callType).sendCall();
+            if (null != fileName && !"".equals(fileName) && fileName.length() > 0) {
+                DownloadCall.getInstance(mContext, url, request, subscriber, callType).setFileName(fileName).sendCall();
+            } else {
+                DownloadCall.getInstance(mContext, url, request, subscriber, callType).sendCall();
+            }
         } else {
+            subscriber.onError(new Exception(bean.getMsg()));
             subscriber.onCompleted();
-            subscriber.onError(new Exception("网络错误"));
         }
     }
 
