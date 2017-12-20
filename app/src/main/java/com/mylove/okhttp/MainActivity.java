@@ -8,9 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.mylove.loglib.JLog;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import didikee.com.permissionshelper.PermissionsHelper;
 import didikee.com.permissionshelper.permission.DangerousPermissions;
 
@@ -80,48 +77,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void data() {
-        String url = "http://123.56.176.15:8890/SunshineMedicineWebservice/SunshineMedicineWebservice.asmx/_getDeptUploadSQL";
-        Map<Object, Object> oMap = new HashMap<>();
-        oMap.put("strDeptSN", "MDI6MDA6MDA6MDA6MDA6MDA=");
-        oMap.put("strDeptKind", "1");
-        int[] ints = new int[]{11, 12, 13, 14, 15};
-        for (int i : ints) {
-            oMap.put("strDataKind", i + "");
-            OkHttpUtil.getInstance(this).post(url).async(oMap, new onOkHttpListener() {
-                @Override
-                public void onCompleted() {
-
-                }
-
-                @Override
-                public void onSuccess(ResultMsg requestMsg) {
-                    JLog.v(requestMsg);
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    JLog.v(t);
-                }
-            });
-        }
-//        String url = "https://www.yjw1020.club/index/img/Ta_01.jpg";
-//        OkHttpUtil.getInstance(this).downloadFile(url).sync(null, new onOkHttpListener() {
-//
-//            @Override
-//            public void onCompleted() {
-//
-//            }
-//
-//            @Override
-//            public void onSuccess(ResultMsg s) {
-//                JLog.v(s);
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable s) {
-//                JLog.v(s);
-//            }
-//        });
     }
 
     @Override
