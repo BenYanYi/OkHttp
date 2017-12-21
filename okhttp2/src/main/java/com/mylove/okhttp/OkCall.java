@@ -25,36 +25,33 @@ import rx.Subscriber;
 class OkCall {
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
-    private String mCacheUrl;
-    private Subscriber<? super ResultMsg> subscriber;
-    private Call call;
+    private static String mCacheUrl;
+    private static Subscriber<? super ResultMsg> subscriber;
+    private static Call call;
     @SuppressLint("StaticFieldLeak")
     private static OkCall instance;
-    private CallType callType;
+    private static CallType callType;
     private static OkHttpClient okHttpClient;
 
-    private OkCall(String mCacheUrl, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
-        this.mCacheUrl = mCacheUrl;
-        this.subscriber = subscriber;
-        this.call = okHttpClient.newCall(request);
-        this.callType = callType;
+    private OkCall() {
+
     }
 
     /**
      * okHttpClient初始化，并添加拦截及缓存
      *
-     * @param context    上下文
-     * @param mCacheUrl  缓存地址
-     * @param request    请求
-     * @param subscriber 返回
-     * @param callType   请求类型
+     * @param context     上下文
+     * @param cacheUrl    缓存地址
+     * @param request     请求
+     * @param subscriber1 返回
+     * @param type        请求类型
      * @return
      */
-    public static OkCall getInstance(Context context, String mCacheUrl, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
-//        if (instance == null) {
-//            synchronized (OkCall.class) {
-//                if (instance == null) {
-                    mContext = context;
+    public static OkCall getInstance(Context context, String cacheUrl, Request request, Subscriber<? super ResultMsg> subscriber1, CallType type) {
+        mContext = context;
+        if (instance == null) {
+            synchronized (OkCall.class) {
+                if (instance == null) {
                     OkHttpClient httpClient = new OkHttpClient();
                     okHttpClient = httpClient.newBuilder()
                             .addNetworkInterceptor(new CacheInterceptor())
@@ -62,12 +59,17 @@ class OkCall {
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
                             .build();
-                    instance = new OkCall(mCacheUrl, request, subscriber, callType);
-//                }
-//            }
-//        }
+                    instance = new OkCall();
+                }
+            }
+        }
+        mCacheUrl = cacheUrl;
+        subscriber = subscriber1;
+        call = okHttpClient.newCall(request);
+        callType = type;
         return instance;
     }
+
 
     /**
      * 请求

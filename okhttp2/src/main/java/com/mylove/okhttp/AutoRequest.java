@@ -25,12 +25,12 @@ public class AutoRequest {
             synchronized (AutoRequest.class) {
                 if (instance == null) {
                     instance = new AutoRequest();
-                    mContext = context;
-                    url = str;
-                    requestType = type;
                 }
             }
         }
+        mContext = context;
+        url = str;
+        requestType = type;
         return instance;
     }
 

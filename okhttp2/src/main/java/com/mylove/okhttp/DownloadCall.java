@@ -29,33 +29,30 @@ import rx.Subscriber;
 class DownloadCall {
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
-    private String url;
-    private Subscriber<? super ResultMsg> subscriber;
-    private Call call;
+    private static String url;
+    private static Subscriber<? super ResultMsg> subscriber;
+    private static Call call;
     @SuppressLint("StaticFieldLeak")
     private static DownloadCall instance;
-    private CallType callType;
+    private static CallType callType;
     private static OkHttpClient okHttpClient;
     private String fileName;
 
-    private DownloadCall(String url, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
-        this.url = url;
-        this.subscriber = subscriber;
-        this.call = okHttpClient.newCall(request);
-        this.callType = callType;
+    private DownloadCall() {
+
     }
 
     /**
      * okHttpClient初始化，并添加拦截及缓存
      *
-     * @param context    上下文
-     * @param mCacheUrl  缓存地址
-     * @param request    请求
-     * @param subscriber 返回
-     * @param callType   请求类型
+     * @param context     上下文
+     * @param str         缓存地址
+     * @param request     请求
+     * @param subscriber1 返回
+     * @param type        请求类型
      * @return
      */
-    static DownloadCall getInstance(Context context, String mCacheUrl, Request request, Subscriber<? super ResultMsg> subscriber, CallType callType) {
+    static DownloadCall getInstance(Context context, String str, Request request, Subscriber<? super ResultMsg> subscriber1, CallType type) {
         if (instance == null) {
             synchronized (DownloadCall.class) {
                 if (instance == null) {
@@ -67,10 +64,14 @@ class DownloadCall {
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
                             .build();
-                    instance = new DownloadCall(mCacheUrl, request, subscriber, callType);
+                    instance = new DownloadCall();
                 }
             }
         }
+        url = str;
+        subscriber = subscriber1;
+        call = okHttpClient.newCall(request);
+        callType = type;
         return instance;
     }
 

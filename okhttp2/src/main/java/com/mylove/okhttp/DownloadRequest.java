@@ -25,12 +25,12 @@ public class DownloadRequest {
             synchronized (DownloadRequest.class) {
                 if (instance == null) {
                     instance = new DownloadRequest();
-                    mContext = context;
-                    url = str;
-                    requestType = type;
                 }
             }
         }
+        mContext = context;
+        url = str;
+        requestType = type;
         return instance;
     }
 

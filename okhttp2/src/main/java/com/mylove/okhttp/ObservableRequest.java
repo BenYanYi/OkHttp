@@ -37,12 +37,12 @@ class ObservableRequest {
             synchronized (ObservableRequest.class) {
                 if (instance == null) {
                     instance = new ObservableRequest();
-                    mContext = context;
-                    requestType = type1;
-                    callType = type2;
                 }
             }
         }
+        mContext = context;
+        requestType = type1;
+        callType = type2;
         return instance;
     }
 

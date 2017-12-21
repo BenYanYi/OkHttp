@@ -51,12 +51,12 @@ class DownloadObservable {
             synchronized (DownloadObservable.class) {
                 if (instance == null) {
                     instance = new DownloadObservable();
-                    mContext = context;
-                    requestType = type1;
-                    callType = type2;
                 }
             }
         }
+        mContext = context;
+        requestType = type1;
+        callType = type2;
         return instance;
     }
 

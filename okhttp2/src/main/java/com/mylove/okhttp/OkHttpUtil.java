@@ -21,10 +21,10 @@ public class OkHttpUtil {
             synchronized (OkHttpUtil.class) {
                 if (instance == null) {
                     instance = new OkHttpUtil();
-                    mContext = context;
                 }
             }
         }
+        mContext = context;
         return instance;
     }
 
