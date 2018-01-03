@@ -77,6 +77,78 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void data() {
+//        sendTest();
+        sendTest2();
+    }
+
+//    private void sendTest() {
+//        OkHttpUtil.getInstance(this).post("http://www.yanyi.red/api/AppMsg.php").async(null, new onOkHttpListener() {
+//            @Override
+//            public void onCompleted() {
+//
+//            }
+//
+//            @Override
+//            public void onSuccess(ResultMsg requestMsg) {
+//                JLog.v(requestMsg);
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable t) {
+//
+//            }
+//        });
+//        OkHttpUtil.getInstance(this).post("http://www.yanyi.red/api/TestApi.php").async(null, new onOkHttpListener() {
+//            @Override
+//            public void onCompleted() {
+//                JLog.v();
+//            }
+//
+//            @Override
+//            public void onSuccess(ResultMsg resultMsg) {
+//                JLog.v(resultMsg);
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable throwable) {
+//                throwable.printStackTrace();
+//            }
+//        });
+//    }
+
+    private void sendTest2() {
+        OkHttpUtil.getInstance(this).post("http://www.yanyi.red/api/AppMsg.php").async(null, new onOkHttpListener() {
+            @Override
+            public void onCompleted() {
+                JLog.v();
+            }
+
+            @Override
+            public void onSuccess(ResultMsg resultMsg) {
+                JLog.v(resultMsg);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        });
+        OkHttpUtil.getInstance(this).post("http://www.yanyi.red/api/TestApi.php").async(null, new onOkHttpListener() {
+            @Override
+            public void onCompleted() {
+                JLog.v();
+            }
+
+            @Override
+            public void onSuccess(ResultMsg resultMsg) {
+                JLog.v(resultMsg);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        });
     }
 
     @Override

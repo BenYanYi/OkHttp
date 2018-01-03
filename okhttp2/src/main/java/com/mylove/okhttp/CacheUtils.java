@@ -29,12 +29,12 @@ class CacheUtils {
         if (instance == null) {
             instance = new CacheUtils();
             mContext = context;
-            File dir = mContext.getExternalFilesDir(null);
-            if (dir != null && !dir.exists() && Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                dir.mkdirs();
-            }
-            realFile = dir;
         }
+        File dir = mContext.getExternalFilesDir(null);
+        if (dir != null && !dir.exists() && Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            dir.mkdirs();
+        }
+        realFile = dir;
         return instance;
     }
 

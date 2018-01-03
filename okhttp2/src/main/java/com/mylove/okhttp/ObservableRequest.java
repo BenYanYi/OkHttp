@@ -2,15 +2,22 @@ package com.mylove.okhttp;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -32,11 +39,21 @@ class ObservableRequest {
     private static RequestType requestType;
     private static CallType callType;
 
+    private static OkHttpClient okHttpClient;
+    private String mCacheUrl = "";
+
     static ObservableRequest getInstance(Context context, RequestType type1, CallType type2) {
         if (instance == null) {
             synchronized (ObservableRequest.class) {
                 if (instance == null) {
                     instance = new ObservableRequest();
+                    OkHttpClient httpClient = new OkHttpClient();
+                    okHttpClient = httpClient.newBuilder()
+                            .addNetworkInterceptor(new CacheInterceptor())
+                            .cache(Cache.privateCache(context))
+                            .connectTimeout(30, TimeUnit.SECONDS)
+                            .readTimeout(30, TimeUnit.SECONDS)
+                            .build();
                 }
             }
         }
@@ -67,7 +84,7 @@ class ObservableRequest {
     }
 
     private Observable<ResultMsg> getObservable(final String url, final Map<Object, Object> oMap) {
-        return Observable.create(new Observable.OnSubscribe<ResultMsg>() {
+        return Observable.unsafeCreate(new Observable.OnSubscribe<ResultMsg>() {
             @Override
             public void call(Subscriber<? super ResultMsg> subscriber) {
                 send(url, oMap, subscriber);
@@ -75,17 +92,18 @@ class ObservableRequest {
         });
     }
 
-    private void send(final String url, final Map<Object, Object> oMap, final Subscriber<? super ResultMsg> subscriber) {
-        final String mCacheUrl;
-        if (FormatUtil.isMapNotEmpty(oMap)) {
-            mCacheUrl = url + oMap.toString();
+    private void send(String url, Map<Object, Object> map, Subscriber<? super ResultMsg> subscriber) {
+//        Call call = okHttpClient.newCall(request(url, map));
+        if (FormatUtil.isMapNotEmpty(map)) {
+            mCacheUrl = url + map.toString();
         } else {
             mCacheUrl = url;
         }
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
-            Request request = getRequest(url, oMap);
-            OkCall.getInstance(mContext, mCacheUrl, request, subscriber, callType).sendCall();
+            Call call = okHttpClient.newCall(getRequest(url, map));
+//            OkCall.getInstance(mContext, mCacheUrl, call, subscriber, callType).sendCall();
+            sendCall(call, subscriber);
         } else {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
             if (FormatUtil.isNotEmpty(json)) {
@@ -98,6 +116,131 @@ class ObservableRequest {
             }
             subscriber.onCompleted();
         }
+
+    }
+
+    /**
+     * 请求
+     */
+    void sendCall(Call call, Subscriber<? super ResultMsg> subscriber) {
+        if (callType == CallType.SYNC) {
+            sync(call, subscriber);
+        } else if (callType == CallType.ASYNC) {
+            async(call, subscriber);
+        }
+    }
+
+    /**
+     * 同步请求
+     */
+    private void sync(Call call, Subscriber<? super ResultMsg> subscriber) {
+        try {
+            Response execute = call.execute();
+            ResultMsg msg = new ResultMsg();
+            int code = execute.code();
+            msg.setCode(code + "");
+            msg.setResult("");
+            if (execute.isSuccessful()) {
+                String str = execute.body().string();
+                msg.setResult(str);
+                if (!str.contains("<!DOCTYPE html>")) {
+                    if (FormatUtil.isNotEmpty(mCacheUrl)) {
+                        CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
+                    }
+                }
+                subscriber.onNext(msg);
+                subscriber.onCompleted();
+            } else {
+                String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
+                if (FormatUtil.isNotEmpty(json)) {
+                    msg.setResult(json);
+                    subscriber.onNext(msg);
+                } else {
+                    subscriber.onError(new Exception("请求失败"));
+                }
+                subscriber.onCompleted();
+            }
+        } catch (IOException e) {
+            String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
+            ResultMsg msg = new ResultMsg();
+            msg.setCode("404");
+            if (FormatUtil.isNotEmpty(json)) {
+                msg.setResult(json);
+                subscriber.onNext(msg);
+            } else {
+                subscriber.onError(e);
+            }
+            e.printStackTrace();
+            subscriber.onCompleted();
+        }
+    }
+
+    /**
+     * 异步请求
+     */
+    private void async(Call call, final Subscriber<? super ResultMsg> subscriber) {
+//        call.enqueue(new Callback() {
+//            @Override
+//            public void onFailure(Call call, IOException e) {
+//                subscriber.onError(e);
+//            }
+//
+//            @Override
+//            public void onResponse(Call call, Response response) throws IOException {
+//                String str = response.body().string();
+//                ResultMsg resultMsg = new ResultMsg();
+//                resultMsg.setCode(response.code() + "");
+//                resultMsg.setResult(str);
+//                subscriber.onNext(resultMsg);
+//                subscriber.onCompleted();
+//            }
+//        });
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
+                ResultMsg msg = new ResultMsg();
+                msg.setCode("404");
+                if (FormatUtil.isNotEmpty(json)) {
+                    msg.setResult(json);
+                    subscriber.onNext(msg);
+                } else {
+                    subscriber.onError(e);
+                }
+                e.printStackTrace();
+                subscriber.onCompleted();
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                String str = response.body().string();
+                ResultMsg msg = new ResultMsg();
+                int code = response.code();
+                msg.setCode(code + "");
+                msg.setResult(str);
+                if (!str.contains("<!DOCTYPE html>")) {
+                    if (FormatUtil.isNotEmpty(mCacheUrl)) {
+                        CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
+                    }
+                }
+                subscriber.onNext(msg);
+                subscriber.onCompleted();
+            }
+        });
+    }
+
+    private Request request(String url, Map<Object, Object> map) {
+        FormBody.Builder builder = new FormBody.Builder();
+        if (FormatUtil.isMapNotEmpty(map)) {
+            for (Map.Entry<Object, Object> entry : map.entrySet()) {
+                builder.add(entry.getKey().toString(), entry.getValue().toString());
+            }
+        }
+        FormBody build = builder.build();
+        return new Request.Builder()
+                .url(url)
+                .post(build)
+                .build();
     }
 
     /**
