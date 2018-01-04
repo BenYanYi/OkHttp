@@ -43,7 +43,7 @@ class ObservableRequest {
 
     private static OkHttpClient okHttpClient;
     private String mCacheUrl = "";
-    private static MediaType mediaType;
+    private MediaType mediaType = MediaType.parse("text/xml; charset=UTF-8");
     private static String urlMsg;
     private static String label;
 
@@ -68,7 +68,7 @@ class ObservableRequest {
         return instance;
     }
 
-    static ObservableRequest getInstance(MediaType mediaType1, String msg, String labelStr, Context context, RequestType type1, CallType type2) {
+    static ObservableRequest getInstance(String msg, String labelStr, Context context, RequestType type1, CallType type2) {
         if (instance == null) {
             synchronized (ObservableRequest.class) {
                 if (instance == null) {
@@ -83,7 +83,6 @@ class ObservableRequest {
                 }
             }
         }
-        mediaType = mediaType1;
         urlMsg = msg;
         label = labelStr;
         mContext = context;
