@@ -10,6 +10,7 @@ package com.mylove.okhttp;
 enum RequestType {
     GET,
     POST,
+    POST_XML_SOAP,
     UP_FILE,
     ALL,
 }

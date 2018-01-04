@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import com.mylove.loglib.JLog;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -41,6 +43,9 @@ class ObservableRequest {
 
     private static OkHttpClient okHttpClient;
     private String mCacheUrl = "";
+    private static MediaType mediaType;
+    private static String urlMsg;
+    private static String label;
 
     static ObservableRequest getInstance(Context context, RequestType type1, CallType type2) {
         if (instance == null) {
@@ -57,6 +62,30 @@ class ObservableRequest {
                 }
             }
         }
+        mContext = context;
+        requestType = type1;
+        callType = type2;
+        return instance;
+    }
+
+    static ObservableRequest getInstance(MediaType mediaType1, String msg, String labelStr, Context context, RequestType type1, CallType type2) {
+        if (instance == null) {
+            synchronized (ObservableRequest.class) {
+                if (instance == null) {
+                    instance = new ObservableRequest();
+                    OkHttpClient httpClient = new OkHttpClient();
+                    okHttpClient = httpClient.newBuilder()
+                            .addNetworkInterceptor(new CacheInterceptor())
+                            .cache(Cache.privateCache(context))
+                            .connectTimeout(30, TimeUnit.SECONDS)
+                            .readTimeout(30, TimeUnit.SECONDS)
+                            .build();
+                }
+            }
+        }
+        mediaType = mediaType1;
+        urlMsg = msg;
+        label = labelStr;
         mContext = context;
         requestType = type1;
         callType = type2;
@@ -93,7 +122,6 @@ class ObservableRequest {
     }
 
     private void send(String url, Map<Object, Object> map, Subscriber<? super ResultMsg> subscriber) {
-//        Call call = okHttpClient.newCall(request(url, map));
         if (FormatUtil.isMapNotEmpty(map)) {
             mCacheUrl = url + map.toString();
         } else {
@@ -102,7 +130,6 @@ class ObservableRequest {
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
             Call call = okHttpClient.newCall(getRequest(url, map));
-//            OkCall.getInstance(mContext, mCacheUrl, call, subscriber, callType).sendCall();
             sendCall(call, subscriber);
         } else {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
@@ -179,22 +206,7 @@ class ObservableRequest {
      * 异步请求
      */
     private void async(Call call, final Subscriber<? super ResultMsg> subscriber) {
-//        call.enqueue(new Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                subscriber.onError(e);
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, Response response) throws IOException {
-//                String str = response.body().string();
-//                ResultMsg resultMsg = new ResultMsg();
-//                resultMsg.setCode(response.code() + "");
-//                resultMsg.setResult(str);
-//                subscriber.onNext(resultMsg);
-//                subscriber.onCompleted();
-//            }
-//        });
+        JLog.v();
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -214,6 +226,7 @@ class ObservableRequest {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String str = response.body().string();
+                JLog.v(str);
                 ResultMsg msg = new ResultMsg();
                 int code = response.code();
                 msg.setCode(code + "");
@@ -257,15 +270,39 @@ class ObservableRequest {
         switch (requestType) {
             case GET:
                 return get(url, oMap);
-            case POST:
-                return post(url, oMap);
+            case POST_XML_SOAP:
+                return postXMLToSoap(url, oMap);
             case UP_FILE:
                 return upFile(url, oMap);
             case ALL:
                 return upAll(url, oMap);
+            case POST:
             default:
                 return post(url, oMap);
         }
+    }
+
+    private Request postXMLToSoap(String url, Map<Object, Object> oMap) {
+        if (!FormatUtil.isMapNotEmpty(oMap)) {
+            throw new NullPointerException("请求的数据不能为空");
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:").append(label).append("=\"http://www.orion.com/lpz\">");
+        sb.append("<soapenv:Header/>");
+        sb.append("<soapenv:Body>");
+        sb.append("<").append(label).append(":").append(urlMsg).append(">");
+        for (Map.Entry<Object, Object> entry : oMap.entrySet()) {
+            String key = entry.getKey().toString();
+            String value = entry.getValue().toString();
+            sb.append("<").append(label).append(":").append(key).append(">").append(value).append("</").append(label).append(":").append(key).append(">");
+        }
+        sb.append("</").append(label).append(":").append(urlMsg).append(">");
+        sb.append("</soapenv:Body>");
+        sb.append("</soapenv:Envelope>");
+        return new Request.Builder()
+                .url(url)
+                .post(RequestBody.create(mediaType, sb.toString()))
+                .build();
     }
 
     /**

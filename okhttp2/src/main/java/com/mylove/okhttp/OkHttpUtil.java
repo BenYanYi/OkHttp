@@ -33,8 +33,11 @@ public class OkHttpUtil {
     }
 
     public AutoRequest post(String url) {
-//        request(url, oMap, onOkHttpListener);
         return AutoRequest.getInstance(mContext, url, RequestType.POST);
+    }
+
+    public XMLRequest postXMLToSoap(String url, String mediaTypeStr) {
+        return XMLRequest.getInstance(mContext, url, mediaTypeStr, RequestType.POST_XML_SOAP);
     }
 
     public AutoRequest postUpFile(String url) {
