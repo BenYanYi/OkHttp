@@ -342,10 +342,10 @@ class ObservableRequest {
                 .setType(MultipartBody.ALTERNATIVE);
         if (FormatUtil.isMapNotEmpty(oMap)) {
             for (Map.Entry<Object, Object> entry : oMap.entrySet()) {
-                File file = new File(entry.getValue().toString());
                 int indexOf = entry.getValue().toString().lastIndexOf("/");
                 int indexOf1 = entry.getValue().toString().lastIndexOf(".");
                 if (indexOf > 0 && indexOf1 > 0) {
+                    File file = new File(entry.getValue().toString());
                     RequestBody requestBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
                     String fileName = entry.getKey().toString().substring(indexOf + 1, entry.getKey().toString().length());
                     builder.addFormDataPart(entry.getKey().toString(), fileName, requestBody);
