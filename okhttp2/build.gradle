@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
-group = 'com.github.love-yanyi'
+group = 'com.github.BenYanYi'
 
 android {
     compileSdkVersion 26

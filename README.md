@@ -4,7 +4,7 @@
 
 module 下添加
 
-     compile 'com.github.love-yanyi:OkHttp:1.1.4'
+     compile 'com.github.BenYanYi:OkHttp:1.1.4'
 
 <br/>
 project 下添加
@@ -19,5 +19,3 @@ project 下添加
     }
 
 <br/>
-
-如果需要使用Jlog，可以查看https://github.com/love-yanyi/Logger
