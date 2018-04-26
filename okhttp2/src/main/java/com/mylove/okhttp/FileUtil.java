@@ -3,8 +3,6 @@ package com.mylove.okhttp;
 import android.graphics.Bitmap;
 import android.os.Environment;
 
-import com.mylove.loglib.JLog;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,7 +41,6 @@ class FileUtil {
             }
             FileOutputStream fos = new FileOutputStream(file);
             String substring = path.substring(path.length() - 3, path.length());
-            JLog.v(substring);
             if (substring.equals("png")) {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
             } else {

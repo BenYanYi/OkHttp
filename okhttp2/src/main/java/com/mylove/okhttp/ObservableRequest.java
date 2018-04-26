@@ -3,8 +3,7 @@ package com.mylove.okhttp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
-
-import com.mylove.loglib.JLog;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -168,8 +167,11 @@ class ObservableRequest {
             msg.setResult("");
             if (execute.isSuccessful()) {
                 String str = execute.body().string();
+                if (OkHttpUtil.isLOG) {
+                    Log.v("onResponse-->>>", str);
+                }
                 msg.setResult(str);
-                if (!str.contains("<!DOCTYPE html>")) {
+                if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
                     if (FormatUtil.isNotEmpty(mCacheUrl)) {
                         CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
                     }
@@ -205,7 +207,6 @@ class ObservableRequest {
      * 异步请求
      */
     private void async(Call call, final Subscriber<? super ResultMsg> subscriber) {
-        JLog.v();
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -225,12 +226,14 @@ class ObservableRequest {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String str = response.body().string();
-                JLog.v(str);
+                if (OkHttpUtil.isLOG) {
+                    Log.v("onResponse-->>>", str);
+                }
                 ResultMsg msg = new ResultMsg();
                 int code = response.code();
                 msg.setCode(code + "");
                 msg.setResult(str);
-                if (!str.contains("<!DOCTYPE html>")) {
+                if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
                     if (FormatUtil.isNotEmpty(mCacheUrl)) {
                         CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
                     }
