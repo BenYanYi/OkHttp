@@ -376,9 +376,12 @@ class ObservableRequest {
         if (FormatUtil.isMapNotEmpty(oMap)) {
             str.append("?");
             for (Map.Entry<Object, Object> entry : oMap.entrySet()) {
-                str.append(entry.getKey()).append("=").append(entry).append("&");
+                str.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
             }
             str = new StringBuilder(str.substring(0, str.length() - 1));
+        }
+        if (OkHttpUtil.isLOG) {
+            Log.v("getURL-->>>", str.toString());
         }
         return new Request.Builder()
                 .url(str.toString())
