@@ -18,14 +18,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setPermissions();
+        init();
     }
 
-    private void setPermissions() {
-            data();
-    }
+    private void init() {
 
-    private void data() {
     }
-
 }
