@@ -4,7 +4,7 @@
 
 module 下添加
 
-     compile 'com.github.BenYanYi:OkHttp:1.1.4'
+     compile 'com.github.BenYanYi:OkHttp:1.1.6'
 
 <br/>
 project 下添加
