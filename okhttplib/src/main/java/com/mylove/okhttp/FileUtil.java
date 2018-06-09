@@ -9,9 +9,6 @@ import java.io.IOException;
 
 /**
  * @author myLove
- * @time 2017/11/24 13:55
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 class FileUtil {

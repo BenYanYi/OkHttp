@@ -8,9 +8,6 @@ import okhttp3.Response;
 
 /**
  * @author myLove
- * @time 2017/11/7 16:26
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
  class CacheInterceptor implements Interceptor {

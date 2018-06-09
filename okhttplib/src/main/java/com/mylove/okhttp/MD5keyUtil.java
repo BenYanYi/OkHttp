@@ -2,48 +2,45 @@ package com.mylove.okhttp;
 
 /**
  * @author myLove
- * @time 2017/11/7 17:05
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 class MD5keyUtil {
     /*
-    * 下面这些S11-S44实际上是一个4*4的矩阵，在原始的C实现中是用#define 实现的， 这里把它们实现成为static final是表示了只读，切能在同一个进程空间内的多个 Instance间共享
-    */
-    static final int S11 = 7;
+     * 下面这些S11-S44实际上是一个4*4的矩阵，在原始的C实现中是用#define 实现的， 这里把它们实现成为static final是表示了只读，切能在同一个进程空间内的多个 Instance间共享
+     */
+    private static final int S11 = 7;
 
-    static final int S12 = 12;
+    private static final int S12 = 12;
 
-    static final int S13 = 17;
+    private static final int S13 = 17;
 
-    static final int S14 = 22;
+    private static final int S14 = 22;
 
-    static final int S21 = 5;
+    private static final int S21 = 5;
 
-    static final int S22 = 9;
+    private static final int S22 = 9;
 
-    static final int S23 = 14;
+    private static final int S23 = 14;
 
-    static final int S24 = 20;
+    private static final int S24 = 20;
 
-    static final int S31 = 4;
+    private static final int S31 = 4;
 
-    static final int S32 = 11;
+    private static final int S32 = 11;
 
-    static final int S33 = 16;
+    private static final int S33 = 16;
 
-    static final int S34 = 23;
+    private static final int S34 = 23;
 
-    static final int S41 = 6;
+    private static final int S41 = 6;
 
-    static final int S42 = 10;
+    private static final int S42 = 10;
 
-    static final int S43 = 15;
+    private static final int S43 = 15;
 
-    static final int S44 = 21;
+    private static final int S44 = 21;
 
-    static final byte[] PADDING = {-128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    private static final byte[] PADDING = {-128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     /*
@@ -57,11 +54,9 @@ class MD5keyUtil {
 
     private static byte[] buffer = new byte[64]; // input buffer
 
-      /*
+    /*
      * digestHexStr是keyBean的唯一一个公共成员，是最新一次计算结果的 16进制ASCII表示.
      */
-
-     String digestHexStr;
 
     /*
      * digest,是最新一次计算结果的2进制内部表示，表示128bit的keyBean值.
@@ -71,18 +66,18 @@ class MD5keyUtil {
     /*
      * getkeyBeanofStr是类keyBean最主要的公共方法，入口参数是你想要进行keyBean变换的字符串 返回的是变换完的结果，这个结果是从公共成员digestHexStr取得的．
      */
-     String getkeyBeanofStr(String inbuf) {
+    String getkeyBeanofStr(String inbuf) {
         keyBeanInit();
         keyBeanUpdate(inbuf.getBytes(), inbuf.length());
         keyBeanFinal();
-        digestHexStr = "";
+        StringBuilder digestHexStr = new StringBuilder();
         for (int i = 0; i < 16; i++) {
-            digestHexStr += byteHEX(digest[i]);
+            digestHexStr.append(byteHEX(digest[i]));
         }
-        return digestHexStr;
+        return digestHexStr.toString();
     }
 
-     static MD5keyUtil mBean = null;
+    private static MD5keyUtil mBean = null;
 
     static MD5keyUtil newInstance() {
         if (mBean == null) {
@@ -94,7 +89,7 @@ class MD5keyUtil {
 
 
     // 这是keyBean这个类的标准构造函数，JavaBean要求有一个public的并且没有参数的构造函数
-     MD5keyUtil() {
+    private MD5keyUtil() {
         keyBeanInit();
         return;
     }
@@ -324,19 +319,18 @@ class MD5keyUtil {
     /*
      * b2iu是我写的一个把byte按照不考虑正负号的原则的＂升位＂程序，因为java没有unsigned运算
      */
-     static long b2iu(byte b) {
+    private static long b2iu(byte b) {
         return b < 0 ? b & 0x7F + 128 : b;
     }
 
     /*
      * byteHEX()，用来把一个byte类型的数转换成十六进制的ASCII表示， 因为java中的byte的toString无法实现这一点，我们又没有C语言中的 sprintf(outbuf,"%02X",ib)
      */
-     static String byteHEX(byte ib) {
+    private static String byteHEX(byte ib) {
         char[] Digit = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
         char[] ob = new char[2];
         ob[0] = Digit[(ib >>> 4) & 0X0F];
         ob[1] = Digit[ib & 0X0F];
-        String s = new String(ob);
-        return s;
+        return new String(ob);
     }
 }

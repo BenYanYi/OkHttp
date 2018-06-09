@@ -7,9 +7,6 @@ import java.util.Map;
 
 /**
  * @author myLove
- * @time 2017/11/15 14:17
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 public class AutoRequest {

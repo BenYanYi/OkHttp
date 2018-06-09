@@ -5,9 +5,6 @@ import android.content.Context;
 
 /**
  * @author myLove
- * @time 2017/11/15 13:42
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 class Internet {
@@ -22,7 +19,7 @@ class Internet {
                 msg.setMsg("网络异常");
                 return msg;
             case 0:
-                if (!InternetUtil.isNetWorkConnected(mContext)) {
+                if (InternetUtil.isNetWorkConnected(mContext)) {
                     msg.setStatus(false);
                     msg.setMsg("网络异常");
                     return msg;
@@ -31,7 +28,7 @@ class Internet {
                     return msg;
                 }
             case 1:
-                if (!InternetUtil.isNetWorkConnected(mContext)) {
+                if (InternetUtil.isNetWorkConnected(mContext)) {
                     msg.setStatus(false);
                     msg.setMsg("WIFI网络异常");
                     return msg;
@@ -40,7 +37,7 @@ class Internet {
                     return msg;
                 }
             default:
-                if (!InternetUtil.isNetWorkConnected(mContext)) {
+                if (InternetUtil.isNetWorkConnected(mContext)) {
                     msg.setStatus(false);
                     msg.setMsg("网络异常");
                     return msg;

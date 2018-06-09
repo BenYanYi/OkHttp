@@ -7,9 +7,6 @@ import java.util.Map;
 
 /**
  * @author myLove
- * @time 2018/1/4 15:14
- * @e-mail love@yanyi.red
- * @overview
  */
 
 public class XMLRequest {
@@ -37,11 +34,11 @@ public class XMLRequest {
         return instance;
     }
 
-    public void sync(String urlMsg, String labelStr, Map<Object, Object> map, onOkHttpListener onOkHttpListener) {
-        ObservableRequest.getInstance(urlMsg, labelStr, mContext, requestType, CallType.SYNC).request(url, map, onOkHttpListener);
+    public void sync(Map<Object, Object> map, onOkHttpListener onOkHttpListener) {
+        ObservableRequest.getInstance(mContext, requestType, CallType.SYNC).request(url, map, onOkHttpListener);
     }
 
-    public void async(String urlMsg, String labelStr, Map<Object, Object> map, onOkHttpListener onOkHttpListener) {
-        ObservableRequest.getInstance(urlMsg, labelStr, mContext, requestType, CallType.ASYNC).request(url, map, onOkHttpListener);
+    public void async(Map<Object, Object> map, onOkHttpListener onOkHttpListener) {
+        ObservableRequest.getInstance(mContext, requestType, CallType.ASYNC).request(url, map, onOkHttpListener);
     }
 }

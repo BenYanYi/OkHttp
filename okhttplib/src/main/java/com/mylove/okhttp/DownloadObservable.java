@@ -11,6 +11,13 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -18,16 +25,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * @author myLove
- * @time 2017/11/24 13:38
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 class DownloadObservable {
@@ -51,6 +51,7 @@ class DownloadObservable {
                     OkHttpClient httpClient = new OkHttpClient();
                     okHttpClient = httpClient.newBuilder()
                             .addNetworkInterceptor(new CacheInterceptor())
+                            .addInterceptor(Cache.HTTP_LOGGING_INTERCEPTOR)
                             .cache(Cache.privateCache(context))
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
@@ -88,10 +89,15 @@ class DownloadObservable {
 
     void request(String url, Map<Object, Object> oMap, final onOkHttpListener onOkHttpListener) {
         getObservable(url, oMap).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<ResultMsg>() {
+                .subscribe(new Observer<String>() {
                     @Override
-                    public void onCompleted() {
-                        onOkHttpListener.onCompleted();
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(String str) {
+                        onOkHttpListener.onSuccess(str);
                     }
 
                     @Override
@@ -100,36 +106,36 @@ class DownloadObservable {
                     }
 
                     @Override
-                    public void onNext(ResultMsg s) {
-                        onOkHttpListener.onSuccess(s);
+                    public void onComplete() {
+                        onOkHttpListener.onCompleted();
                     }
                 });
     }
 
-    private Observable<ResultMsg> getObservable(final String url, final Map<Object, Object> oMap) {
-        return Observable.create(new Observable.OnSubscribe<ResultMsg>() {
+    private Observable<String> getObservable(final String url, final Map<Object, Object> oMap) {
+        return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(Subscriber<? super ResultMsg> subscriber) {
-                send(url, oMap, subscriber);
+            public void subscribe(ObservableEmitter<String> e) {
+                send(url, oMap, e);
             }
         });
     }
 
-    private void send(final String url, final Map<Object, Object> oMap, final Subscriber<? super ResultMsg> subscriber) {
+    private void send(final String url, final Map<Object, Object> oMap, final ObservableEmitter<String> subscriber) {
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
             Call call = okHttpClient.newCall(getRequest(url, oMap));
-            sendCall(url,call,subscriber);
+            sendCall(url, call, subscriber);
         } else {
             subscriber.onError(new Exception(bean.getMsg()));
-            subscriber.onCompleted();
+            subscriber.onComplete();
         }
     }
 
     /**
      * 请求
      */
-    private void sendCall(String url, Call call, Subscriber<? super ResultMsg> subscriber) {
+    private void sendCall(String url, Call call, ObservableEmitter<String> subscriber) {
         if (callType == CallType.SYNC) {
             sync(url, call, subscriber);
         } else if (callType == CallType.ASYNC) {
@@ -140,7 +146,7 @@ class DownloadObservable {
     /**
      * 异步请求
      */
-    private void sync(final String url, Call call, final Subscriber<? super ResultMsg> subscriber) {
+    private void sync(final String url, Call call, final ObservableEmitter<String> subscriber) {
         try {
             Response execute = call.execute();
             if (execute.isSuccessful()) {
@@ -151,18 +157,18 @@ class DownloadObservable {
         } catch (IOException e) {
             subscriber.onError(e);
         }
-        subscriber.onCompleted();
+        subscriber.onComplete();
     }
 
     /**
      * 同步请求
      */
-    private void async(final String url, Call call, final Subscriber<? super ResultMsg> subscriber) {
+    private void async(final String url, Call call, final ObservableEmitter<String> subscriber) {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 subscriber.onError(e);
-                subscriber.onCompleted();
+                subscriber.onComplete();
             }
 
             @Override
@@ -177,7 +183,7 @@ class DownloadObservable {
      *
      * @param body
      */
-    private void save(ResponseBody body, String url, Subscriber<? super ResultMsg> subscriber) {
+    private void save(ResponseBody body, String url, ObservableEmitter<String> subscriber) {
         if (null == fileName && "".equals(fileName) && fileName.length() <= 0) {
             int lastIndexOf = url.lastIndexOf("/");
             String pathStr = url.subSequence(lastIndexOf + 1, url.length()).toString();
@@ -195,10 +201,7 @@ class DownloadObservable {
                 fos.write(buf, 0, len);
             }
             fos.flush();
-            ResultMsg msg = new ResultMsg();
-            msg.setCode("200");
-            msg.setResult(fileName);
-            subscriber.onNext(msg);
+            subscriber.onNext(fileName);
         } catch (Exception e) {
             subscriber.onError(e);
         } finally {
@@ -213,7 +216,7 @@ class DownloadObservable {
                 subscriber.onError(e);
             }
         }
-        subscriber.onCompleted();
+        subscriber.onComplete();
     }
 
     /**

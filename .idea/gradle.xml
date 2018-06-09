@@ -9,7 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/okhttp2" />
+            <option value="$PROJECT_DIR$/okhttplib" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

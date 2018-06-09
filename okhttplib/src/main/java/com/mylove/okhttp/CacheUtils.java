@@ -13,9 +13,6 @@ import java.io.OutputStreamWriter;
 
 /**
  * @author myLove
- * @time 2017/11/7 17:03
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 class CacheUtils {

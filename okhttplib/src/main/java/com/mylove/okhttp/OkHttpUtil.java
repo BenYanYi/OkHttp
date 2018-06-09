@@ -5,9 +5,6 @@ import android.content.Context;
 
 /**
  * @author myLove
- * @time 2017/11/2 14:41
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 public class OkHttpUtil {
@@ -15,7 +12,6 @@ public class OkHttpUtil {
     private static OkHttpUtil instance;
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
-    public static boolean isLOG = true;
 
     public static OkHttpUtil getInstance(Context context) {
         if (instance == null) {

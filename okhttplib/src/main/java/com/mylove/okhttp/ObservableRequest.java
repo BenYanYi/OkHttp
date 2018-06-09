@@ -10,6 +10,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -19,20 +26,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * @author myLove
- * @time 2017/11/15 14:19
- * @e-mail mylove.520.y@gmail.com
- * @overview
  */
 
 class ObservableRequest {
-
     @SuppressLint("StaticFieldLeak")
     private static ObservableRequest instance;
     @SuppressLint("StaticFieldLeak")
@@ -42,9 +41,6 @@ class ObservableRequest {
 
     private static OkHttpClient okHttpClient;
     private String mCacheUrl = "";
-    private MediaType mediaType = MediaType.parse("text/xml; charset=UTF-8");
-    private static String urlMsg;
-    private static String label;
 
     static ObservableRequest getInstance(Context context, RequestType type1, CallType type2) {
         if (instance == null) {
@@ -54,6 +50,7 @@ class ObservableRequest {
                     OkHttpClient httpClient = new OkHttpClient();
                     okHttpClient = httpClient.newBuilder()
                             .addNetworkInterceptor(new CacheInterceptor())
+                            .addInterceptor(Cache.HTTP_LOGGING_INTERCEPTOR)
                             .cache(Cache.privateCache(context))
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
@@ -61,29 +58,6 @@ class ObservableRequest {
                 }
             }
         }
-        mContext = context;
-        requestType = type1;
-        callType = type2;
-        return instance;
-    }
-
-    static ObservableRequest getInstance(String msg, String labelStr, Context context, RequestType type1, CallType type2) {
-        if (instance == null) {
-            synchronized (ObservableRequest.class) {
-                if (instance == null) {
-                    instance = new ObservableRequest();
-                    OkHttpClient httpClient = new OkHttpClient();
-                    okHttpClient = httpClient.newBuilder()
-                            .addNetworkInterceptor(new CacheInterceptor())
-                            .cache(Cache.privateCache(context))
-                            .connectTimeout(30, TimeUnit.SECONDS)
-                            .readTimeout(30, TimeUnit.SECONDS)
-                            .build();
-                }
-            }
-        }
-        urlMsg = msg;
-        label = labelStr;
         mContext = context;
         requestType = type1;
         callType = type2;
@@ -92,10 +66,15 @@ class ObservableRequest {
 
     void request(String url, Map<Object, Object> oMap, final onOkHttpListener onOkHttpListener) {
         getObservable(url, oMap).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<ResultMsg>() {
+                .subscribe(new Observer<String>() {
                     @Override
-                    public void onCompleted() {
-                        onOkHttpListener.onCompleted();
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(String str) {
+                        onOkHttpListener.onSuccess(str);
                     }
 
                     @Override
@@ -104,22 +83,22 @@ class ObservableRequest {
                     }
 
                     @Override
-                    public void onNext(ResultMsg s) {
-                        onOkHttpListener.onSuccess(s);
+                    public void onComplete() {
+                        onOkHttpListener.onCompleted();
                     }
                 });
     }
 
-    private Observable<ResultMsg> getObservable(final String url, final Map<Object, Object> oMap) {
-        return Observable.unsafeCreate(new Observable.OnSubscribe<ResultMsg>() {
+    private Observable<String> getObservable(final String url, final Map<Object, Object> oMap) {
+        return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(Subscriber<? super ResultMsg> subscriber) {
-                send(url, oMap, subscriber);
+            public void subscribe(ObservableEmitter<String> e) {
+                send(url, oMap, e);
             }
         });
     }
 
-    private void send(String url, Map<Object, Object> map, Subscriber<? super ResultMsg> subscriber) {
+    private void send(String url, Map<Object, Object> map, ObservableEmitter<String> subscriber) {
         if (FormatUtil.isMapNotEmpty(map)) {
             mCacheUrl = url + map.toString();
         } else {
@@ -132,14 +111,11 @@ class ObservableRequest {
         } else {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
             if (FormatUtil.isNotEmpty(json)) {
-                ResultMsg msg = new ResultMsg();
-                msg.setCode("404");
-                msg.setResult(json);
-                subscriber.onNext(msg);
+                subscriber.onNext(json);
             } else {
                 subscriber.onError(new Error(bean.getMsg()));
             }
-            subscriber.onCompleted();
+            subscriber.onComplete();
         }
 
     }
@@ -147,7 +123,7 @@ class ObservableRequest {
     /**
      * 请求
      */
-    void sendCall(Call call, Subscriber<? super ResultMsg> subscriber) {
+    private void sendCall(Call call, ObservableEmitter<String> subscriber) {
         if (callType == CallType.SYNC) {
             sync(call, subscriber);
         } else if (callType == CallType.ASYNC) {
@@ -158,88 +134,72 @@ class ObservableRequest {
     /**
      * 同步请求
      */
-    private void sync(Call call, Subscriber<? super ResultMsg> subscriber) {
+    private void sync(Call call, ObservableEmitter<String> subscriber) {
         try {
             Response execute = call.execute();
-            ResultMsg msg = new ResultMsg();
-            int code = execute.code();
-            msg.setCode(code + "");
-            msg.setResult("");
             if (execute.isSuccessful()) {
                 String str = execute.body().string();
-                if (OkHttpUtil.isLOG) {
-                    Log.v("onResponse-->>>", str);
+                if (OkHttpInfo.isLOG) {
+                    Log.v(OkHttpInfo.TAG, str);
                 }
-                msg.setResult(str);
                 if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
                     if (FormatUtil.isNotEmpty(mCacheUrl)) {
                         CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
                     }
                 }
-                subscriber.onNext(msg);
-                subscriber.onCompleted();
+                subscriber.onNext(str);
+                subscriber.onComplete();
             } else {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
-                    msg.setResult(json);
-                    subscriber.onNext(msg);
+                    subscriber.onNext(json);
                 } else {
                     subscriber.onError(new Exception("请求失败"));
                 }
-                subscriber.onCompleted();
+                subscriber.onComplete();
             }
         } catch (IOException e) {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
-            ResultMsg msg = new ResultMsg();
-            msg.setCode("404");
             if (FormatUtil.isNotEmpty(json)) {
-                msg.setResult(json);
-                subscriber.onNext(msg);
+                subscriber.onNext(json);
             } else {
                 subscriber.onError(e);
             }
             e.printStackTrace();
-            subscriber.onCompleted();
+            subscriber.onComplete();
         }
     }
 
     /**
      * 异步请求
      */
-    private void async(Call call, final Subscriber<? super ResultMsg> subscriber) {
+    private void async(Call call, final ObservableEmitter<String> subscriber) {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
-                ResultMsg msg = new ResultMsg();
-                msg.setCode("404");
                 if (FormatUtil.isNotEmpty(json)) {
-                    msg.setResult(json);
-                    subscriber.onNext(msg);
+                    subscriber.onNext(json);
                 } else {
                     subscriber.onError(e);
                 }
                 e.printStackTrace();
-                subscriber.onCompleted();
+                subscriber.onComplete();
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String str = response.body().string();
-                if (OkHttpUtil.isLOG) {
-                    Log.v("onResponse-->>>", str);
+                if (OkHttpInfo.isLOG) {
+                    Log.v(OkHttpInfo.TAG, str);
                 }
-                ResultMsg msg = new ResultMsg();
-                int code = response.code();
-                msg.setCode(code + "");
-                msg.setResult(str);
                 if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
                     if (FormatUtil.isNotEmpty(mCacheUrl)) {
                         CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
                     }
                 }
-                subscriber.onNext(msg);
-                subscriber.onCompleted();
+                subscriber.onNext(str);
+                subscriber.onComplete();
             }
         });
     }
@@ -285,25 +245,28 @@ class ObservableRequest {
     }
 
     private Request postXMLToSoap(String url, Map<Object, Object> oMap) {
-        if (!FormatUtil.isMapNotEmpty(oMap)) {
-            throw new NullPointerException("请求的数据不能为空");
+        if (FormatUtil.isEmpty(OkHttpInfo.soapDataTopString)) {
+            throw new NullPointerException("OkHttpInfo.soapDataTopString不能为空");
+        }
+        if (OkHttpInfo.soapDataBottomString != null) {
+            throw new NullPointerException("OkHttpInfo.soapDataBottomString为null");
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:").append(label).append("=\"http://www.orion.com/lpz\">");
-        sb.append("<soapenv:Header/>");
-        sb.append("<soapenv:Body>");
-        sb.append("<").append(label).append(":").append(urlMsg).append(">");
-        for (Map.Entry<Object, Object> entry : oMap.entrySet()) {
-            String key = entry.getKey().toString();
-            String value = entry.getValue().toString();
-            sb.append("<").append(label).append(":").append(key).append(">").append(value).append("</").append(label).append(":").append(key).append(">");
+        if (FormatUtil.isMapNotEmpty(oMap)) {
+            for (Map.Entry<Object, Object> entry : oMap.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                sb.append("<").append(key).append(">").append(value).append("</").append(key).append(">");
+            }
         }
-        sb.append("</").append(label).append(":").append(urlMsg).append(">");
-        sb.append("</soapenv:Body>");
-        sb.append("</soapenv:Envelope>");
+        MediaType mediaType = MediaType.parse(OkHttpInfo.soapMediaType);
+        String str = OkHttpInfo.soapDataTopString + sb + OkHttpInfo.soapDataBottomString;
+        if (OkHttpInfo.isLOG) {
+            Log.v(OkHttpInfo.TAG, str);
+        }
         return new Request.Builder()
                 .url(url)
-                .post(RequestBody.create(mediaType, sb.toString()))
+                .post(RequestBody.create(mediaType, str))
                 .build();
     }
 
@@ -380,8 +343,8 @@ class ObservableRequest {
             }
             str = new StringBuilder(str.substring(0, str.length() - 1));
         }
-        if (OkHttpUtil.isLOG) {
-            Log.v("getURL-->>>", str.toString());
+        if (OkHttpInfo.isLOG) {
+            Log.v(OkHttpInfo.TAG, str.toString());
         }
         return new Request.Builder()
                 .url(str.toString())
