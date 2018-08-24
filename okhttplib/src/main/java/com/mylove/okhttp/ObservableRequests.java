@@ -5,6 +5,10 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
+import org.json.XML;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -31,9 +35,9 @@ import okhttp3.Response;
  * @author myLove
  */
 
-class ObservableRequest {
+class ObservableRequests<T> {
     @SuppressLint("StaticFieldLeak")
-    private static ObservableRequest instance;
+    private static ObservableRequests instance;
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
     private static RequestType requestType;
@@ -42,11 +46,13 @@ class ObservableRequest {
     private static OkHttpClient okHttpClient;
     private String mCacheUrl = "";
 
-    static ObservableRequest getInstance(Context context, RequestType type1, CallType type2) {
+    public Class<T> tClass;
+
+    static ObservableRequests getInstance(Context context, RequestType type1, CallType type2) {
         if (instance == null) {
-            synchronized (ObservableRequest.class) {
+            synchronized (ObservableRequests.class) {
                 if (instance == null) {
-                    instance = new ObservableRequest();
+                    instance = new ObservableRequests();
                     OkHttpClient httpClient = new OkHttpClient();
                     okHttpClient = httpClient.newBuilder()
                             .addNetworkInterceptor(new CacheInterceptor())
@@ -66,41 +72,39 @@ class ObservableRequest {
 
     void request(String url, Map<Object, Object> oMap, final onOkHttpListener onOkHttpListener) {
         getObservable(url, oMap).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .serialize()//保证上游下游同一线程 ，防止不同线程下 onError 通知会跳到(并吞掉)原始Observable发射的数据项前面的错误行为
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
+                .serialize().subscribe(new Observer<T>() {
+            @Override
+            public void onSubscribe(Disposable d) {
 
-                    }
+            }
 
-                    @Override
-                    public void onNext(String str) {
-                        onOkHttpListener.onSuccess(str);
-                    }
+            @Override
+            public void onNext(T t) {
+                onOkHttpListener.onSuccess(t);
+            }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        onOkHttpListener.onFailure(e);
-                    }
+            @Override
+            public void onError(Throwable e) {
+                onOkHttpListener.onFailure(e);
+            }
 
-                    @Override
-                    public void onComplete() {
-                        onOkHttpListener.onCompleted();
-                    }
-                });
+            @Override
+            public void onComplete() {
+                onOkHttpListener.onCompleted();
+            }
+        });
     }
 
-    private Observable<String> getObservable(final String url, final Map<Object, Object> oMap) {
-
-        return Observable.create(new ObservableOnSubscribe<String>() {
+    private Observable<T> getObservable(final String url, final Map<Object, Object> oMap) {
+        return Observable.create(new ObservableOnSubscribe<T>() {
             @Override
-            public void subscribe(ObservableEmitter<String> e) {
+            public void subscribe(ObservableEmitter<T> e) {
                 send(url, oMap, e);
             }
         });
     }
 
-    private void send(String url, Map<Object, Object> map, ObservableEmitter<String> subscriber) {
+    private void send(String url, Map<Object, Object> map, ObservableEmitter<T> subscriber) {
         if (FormatUtil.isMapNotEmpty(map)) {
             mCacheUrl = url + map.toString();
         } else {
@@ -113,7 +117,8 @@ class ObservableRequest {
         } else {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
             if (FormatUtil.isNotEmpty(json)) {
-                subscriber.onNext(json);
+                T t = new Gson().fromJson(json, tClass);
+                subscriber.onNext(t);
             } else {
                 subscriber.onError(new Error(bean.getMsg()));
             }
@@ -125,7 +130,7 @@ class ObservableRequest {
     /**
      * 请求
      */
-    private void sendCall(Call call, ObservableEmitter<String> subscriber) {
+    private void sendCall(Call call, ObservableEmitter<T> subscriber) {
         if (callType == CallType.SYNC) {
             sync(call, subscriber);
         } else if (callType == CallType.ASYNC) {
@@ -136,7 +141,7 @@ class ObservableRequest {
     /**
      * 同步请求
      */
-    private void sync(Call call, ObservableEmitter<String> subscriber) {
+    private void sync(Call call, ObservableEmitter<T> subscriber) {
         try {
             Response execute = call.execute();
             if (execute.isSuccessful()) {
@@ -144,17 +149,27 @@ class ObservableRequest {
                 if (OkHttpInfo.isLOG) {
                     Log.v(OkHttpInfo.TAG, str);
                 }
-                if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
-                    if (FormatUtil.isNotEmpty(mCacheUrl)) {
-                        CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
+                if ((str.substring(0, 1).equals("<") || str.substring(0, 1).equals("["))
+                        && (str.substring(1, 2).equals("\"") || str.substring(1, 2).equals("["))) {
+                    try {
+                        str = XML.toJSONObject(str).toString();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
+                        if (FormatUtil.isNotEmpty(mCacheUrl)) {
+                            CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
+                        }
                     }
                 }
-                subscriber.onNext(str);
+                T t = new Gson().fromJson(str, tClass);
+                subscriber.onNext(t);
                 subscriber.onComplete();
             } else {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
-                    subscriber.onNext(json);
+                    T t = new Gson().fromJson(json, tClass);
+                    subscriber.onNext(t);
                 } else {
                     subscriber.onError(new Exception("请求失败"));
                 }
@@ -163,25 +178,28 @@ class ObservableRequest {
         } catch (IOException e) {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
             if (FormatUtil.isNotEmpty(json)) {
-                subscriber.onNext(json);
+                T t = new Gson().fromJson(json, tClass);
+                subscriber.onNext(t);
             } else {
                 subscriber.onError(e);
             }
             e.printStackTrace();
             subscriber.onComplete();
         }
+
     }
 
     /**
      * 异步请求
      */
-    private void async(Call call, final ObservableEmitter<String> subscriber) {
+    private void async(Call call, final ObservableEmitter<T> subscriber) {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
-                    subscriber.onNext(json);
+                    T t = new Gson().fromJson(json, tClass);
+                    subscriber.onNext(t);
                 } else {
                     subscriber.onError(e);
                 }
@@ -195,29 +213,24 @@ class ObservableRequest {
                 if (OkHttpInfo.isLOG) {
                     Log.v(OkHttpInfo.TAG, str);
                 }
-                if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
-                    if (FormatUtil.isNotEmpty(mCacheUrl)) {
-                        CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
+                if ((str.substring(0, 1).equals("<") || str.substring(0, 1).equals("["))
+                        && (str.substring(1, 2).equals("\"") || str.substring(1, 2).equals("["))) {
+                    try {
+                        str = XML.toJSONObject(str).toString();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    if (!str.toUpperCase().contains("<!DOCTYPE HTML>")) {
+                        if (FormatUtil.isNotEmpty(mCacheUrl)) {
+                            CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
+                        }
                     }
                 }
-                subscriber.onNext(str);
+                T t = new Gson().fromJson(str, tClass);
+                subscriber.onNext(t);
                 subscriber.onComplete();
             }
         });
-    }
-
-    private Request request(String url, Map<Object, Object> map) {
-        FormBody.Builder builder = new FormBody.Builder();
-        if (FormatUtil.isMapNotEmpty(map)) {
-            for (Map.Entry<Object, Object> entry : map.entrySet()) {
-                builder.add(entry.getKey().toString(), entry.getValue().toString());
-            }
-        }
-        FormBody build = builder.build();
-        return new Request.Builder()
-                .url(url)
-                .post(build)
-                .build();
     }
 
     /**

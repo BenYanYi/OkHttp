@@ -19,4 +19,6 @@ public class OkHttpInfo {
     public static String soapDataBottomString = "";
 
     public static String TAG = "OkHttpUtil--->>>>";
+
+    public static boolean xmlToJson = false;
 }

@@ -7,7 +7,7 @@ package com.mylove.okhttp;
 public interface onOkHttpListener {
     void onCompleted();
 
-    void onSuccess(String message);
+    <T> void onSuccess(T message);
 
     void onFailure(Throwable t);
 }

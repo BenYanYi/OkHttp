@@ -35,7 +35,19 @@ public class AutoRequest {
         ObservableRequest.getInstance(mContext, requestType, CallType.SYNC).request(url, oMap, onOkHttpListener);
     }
 
+    public <T> void sync(Map<Object, Object> oMap, Class<T> tClass, onOkHttpListener onOkHttpListener) {
+        ObservableRequests request = ObservableRequests.getInstance(mContext, requestType, CallType.SYNC);
+        request.tClass = tClass;
+        request.request(url, oMap, onOkHttpListener);
+    }
+
     public void async(Map<Object, Object> oMap, onOkHttpListener onOkHttpListener) {
         ObservableRequest.getInstance(mContext, requestType, CallType.ASYNC).request(url, oMap, onOkHttpListener);
+    }
+
+    public <T> void async(Map<Object, Object> oMap, Class<T> tClass, onOkHttpListener onOkHttpListener) {
+        ObservableRequests request = ObservableRequests.getInstance(mContext, requestType, CallType.ASYNC);
+        request.tClass = tClass;
+        request.request(url, oMap, onOkHttpListener);
     }
 }
