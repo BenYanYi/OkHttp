@@ -36,6 +36,6 @@ public class DownloadRequest {
         if (FormatUtil.isEmpty(filePath)) {
             throw new NullPointerException("filePath is the SDCard directory of the downloaded file, cannot be empty.");
         }
-        DownloadObservable.getInstance(mContext, filePath).request(url, onDownloadListener);
+        DownloadObservable.getInstance(mContext).request(url, filePath, onDownloadListener);
     }
 }
