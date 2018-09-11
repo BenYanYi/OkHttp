@@ -3,8 +3,6 @@ package com.mylove.okhttp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import java.util.Map;
-
 /**
  * @author myLove
  */
@@ -15,9 +13,8 @@ public class DownloadRequest {
     private static String url;
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
-    private static RequestType requestType;
 
-    public static DownloadRequest getInstance(Context context, String str, RequestType type) {
+    public static DownloadRequest getInstance(Context context, String str) {
         if (instance == null) {
             synchronized (DownloadRequest.class) {
                 if (instance == null) {
@@ -27,23 +24,18 @@ public class DownloadRequest {
         }
         mContext = context;
         url = str;
-        requestType = type;
         return instance;
     }
 
-    public void sync(Map<Object, Object> oMap, onOkHttpListener onOkHttpListener) {
-        DownloadObservable.getInstance(mContext, requestType, CallType.SYNC).request(url, oMap, onOkHttpListener);
-    }
-
-    public void sync(Map<Object, Object> oMap, String fileName, onOkHttpListener onOkHttpListener) {
-        DownloadObservable.getInstance(mContext, fileName, requestType, CallType.SYNC).request(url, oMap, onOkHttpListener);
-    }
-
-    public void async(Map<Object, Object> oMap, onOkHttpListener onOkHttpListener) {
-        DownloadObservable.getInstance(mContext, requestType, CallType.ASYNC).request(url, oMap, onOkHttpListener);
-    }
-
-    public void async(Map<Object, Object> oMap, String fileName, onOkHttpListener onOkHttpListener) {
-        DownloadObservable.getInstance(mContext, fileName, requestType, CallType.ASYNC).request(url, oMap, onOkHttpListener);
+    /**
+     * @param filePath           储存下载文件的SDCard目录
+     * @param onDownloadListener 监听
+     */
+    public void download(String filePath, OnDownloadListener onDownloadListener) {
+        //saveDir判断不能为空
+        if (FormatUtil.isEmpty(filePath)) {
+            throw new NullPointerException("filePath is the SDCard directory of the downloaded file, cannot be empty.");
+        }
+        DownloadObservable.getInstance(mContext, filePath).request(url, onDownloadListener);
     }
 }

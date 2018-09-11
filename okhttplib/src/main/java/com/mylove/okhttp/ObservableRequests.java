@@ -122,9 +122,8 @@ class ObservableRequests<T> {
             } else {
                 subscriber.onError(new Error(bean.getMsg()));
             }
-            subscriber.onComplete();
         }
-
+        subscriber.onComplete();
     }
 
     /**
@@ -164,7 +163,6 @@ class ObservableRequests<T> {
                 }
                 T t = new Gson().fromJson(str, tClass);
                 subscriber.onNext(t);
-                subscriber.onComplete();
             } else {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
@@ -173,7 +171,6 @@ class ObservableRequests<T> {
                 } else {
                     subscriber.onError(new Exception("请求失败"));
                 }
-                subscriber.onComplete();
             }
         } catch (IOException e) {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
@@ -184,7 +181,6 @@ class ObservableRequests<T> {
                 subscriber.onError(e);
             }
             e.printStackTrace();
-            subscriber.onComplete();
         }
 
     }
@@ -204,7 +200,6 @@ class ObservableRequests<T> {
                     subscriber.onError(e);
                 }
                 e.printStackTrace();
-                subscriber.onComplete();
             }
 
             @Override
@@ -228,7 +223,6 @@ class ObservableRequests<T> {
                 }
                 T t = new Gson().fromJson(str, tClass);
                 subscriber.onNext(t);
-                subscriber.onComplete();
             }
         });
     }

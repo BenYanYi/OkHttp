@@ -46,6 +46,6 @@ public class OkHttpUtil {
     }
 
     public DownloadRequest downloadFile(String url) {
-        return DownloadRequest.getInstance(mContext, url, RequestType.GET);
+        return DownloadRequest.getInstance(mContext, url);
     }
 }
