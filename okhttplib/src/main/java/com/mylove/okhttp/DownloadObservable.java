@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -130,6 +131,8 @@ class DownloadObservable {
                 FileOutputStream fos = null;
                 // 储存下载文件的目录
                 String savePath = isExistDir(filePath);
+                if (OkHttpInfo.isLOG)
+                    Log.d("路径", filePath);
                 try {
                     is = response.body().byteStream();
                     long total = response.body().contentLength();
@@ -141,6 +144,8 @@ class DownloadObservable {
                         fos.write(buf, 0, len);
                         sum += len;
                         int progress = (int) (sum * 1.0f / total * 100);
+                        if (OkHttpInfo.isLOG)
+                            Log.d("进度", progress + "%");
                         bean.status = 0;
                         bean.progress = progress;
                         // 下载中
@@ -151,6 +156,8 @@ class DownloadObservable {
                     bean.status = 1;
                     subscriber.onNext(bean);
                 } catch (Exception e) {
+                    if (OkHttpInfo.isLOG)
+                        Log.e("报错", e.getMessage());
                     subscriber.onError(e);
                 } finally {
                     try {
@@ -158,12 +165,16 @@ class DownloadObservable {
                             is.close();
                     } catch (IOException e) {
                         e.printStackTrace();
+                        if (OkHttpInfo.isLOG)
+                            Log.e("报错", e.getMessage());
                     }
                     try {
                         if (fos != null)
                             fos.close();
                     } catch (IOException e) {
                         e.printStackTrace();
+                        if (OkHttpInfo.isLOG)
+                            Log.e("报错", e.getMessage());
                     }
                 }
             }

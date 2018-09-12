@@ -7,6 +7,8 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import org.json.XML;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -149,7 +151,7 @@ class ObservableRequests<T> {
                 if ((str.substring(0, 1).equals("<") || str.substring(0, 1).equals("["))
                         && (str.substring(1, 2).equals("\"") || str.substring(1, 2).equals("["))) {
                     try {
-                        subscriber.onNext((T) str);
+                        str = XML.toJSONObject(str).toString();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -158,10 +160,9 @@ class ObservableRequests<T> {
                             CacheUtils.getInstance(mContext).setCacheToLocalJson(mCacheUrl, str);
                         }
                     }
-                } else {
-                    T t = new Gson().fromJson(str, tClass);
-                    subscriber.onNext(t);
                 }
+                T t = new Gson().fromJson(str, tClass);
+                subscriber.onNext(t);
             } else {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
@@ -210,8 +211,7 @@ class ObservableRequests<T> {
                 if ((str.substring(0, 1).equals("<") || str.substring(0, 1).equals("["))
                         && (str.substring(1, 2).equals("\"") || str.substring(1, 2).equals("["))) {
                     try {
-                        //问题
-//                        str = XML.toJSONObject(str).toString();
+                        str = XML.toJSONObject(str).toString();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

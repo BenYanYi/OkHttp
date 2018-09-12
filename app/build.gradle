@@ -32,4 +32,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation project(':okhttplib')
     implementation 'com.yanyi.benyanyi:loglib:1.0.0'
+    implementation 'com.yanyi.benyanyi:permissionlib:1.0.1'
 }
