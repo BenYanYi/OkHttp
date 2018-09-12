@@ -150,7 +150,6 @@ class ObservableRequest {
                     }
                 }
                 subscriber.onNext(str);
-                subscriber.onComplete();
             } else {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
@@ -158,7 +157,6 @@ class ObservableRequest {
                 } else {
                     subscriber.onError(new Exception("请求失败"));
                 }
-                subscriber.onComplete();
             }
         } catch (IOException e) {
             String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
@@ -168,8 +166,8 @@ class ObservableRequest {
                 subscriber.onError(e);
             }
             e.printStackTrace();
-            subscriber.onComplete();
         }
+        subscriber.onComplete();
     }
 
     /**

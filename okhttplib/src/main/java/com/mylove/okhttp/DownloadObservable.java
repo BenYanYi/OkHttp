@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,7 +61,9 @@ class DownloadObservable {
 
     void request(String url, String filePath, final OnDownloadListener onDownloadListener) {
         this.filePath = filePath;
-        getObservable(url).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        getObservable(url)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<DownloadBean>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -71,6 +72,9 @@ class DownloadObservable {
 
                     @Override
                     public void onNext(DownloadBean bean) {
+                        if (OkHttpInfo.isLOG) {
+                            LogHelper.v(bean);
+                        }
                         onDownloadListener.onDownloading(bean.progress);
                         if (bean.status == 1) {
                             onDownloadListener.onSuccess(bean.filePath);
@@ -79,11 +83,15 @@ class DownloadObservable {
 
                     @Override
                     public void onError(Throwable e) {
+                        if (OkHttpInfo.isLOG)
+                            LogHelper.e(e.getMessage());
                         onDownloadListener.onFailure(e);
                     }
 
                     @Override
                     public void onComplete() {
+                        if (OkHttpInfo.isLOG)
+                            LogHelper.v("*****");
                         onDownloadListener.onCompleted();
                     }
                 });
@@ -98,7 +106,7 @@ class DownloadObservable {
         });
     }
 
-    private void send(final String url, final ObservableEmitter<DownloadBean> subscriber) {
+    private void send(final String url, ObservableEmitter<DownloadBean> subscriber) {
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
             Request request = new Request.Builder()
@@ -106,20 +114,42 @@ class DownloadObservable {
                     .build();
             Call call = okHttpClient.newCall(request);
             sendCall(url, call, subscriber);
+//            sendCall(url, call, new onOkHttpListener() {
+//                @Override
+//                public void onCompleted() {
+//                    subscriber.onComplete();
+//                }
+//
+//                @Override
+//                public <T> void onSuccess(T message) {
+//                    DownloadBean bean1 = (DownloadBean) message;
+//                    LogHelper.v(bean1.toString());
+//                    subscriber.onNext(bean1);
+//                }
+//
+//                @Override
+//                public void onFailure(Throwable t) {
+//                    LogHelper.e(t.getMessage());
+//                    subscriber.onError(t);
+//                }
+//            });
         } else {
             subscriber.onError(new Exception(bean.getMsg()));
         }
-        subscriber.onComplete();
     }
 
     /**
      * 请求
      */
     private void sendCall(final String url, Call call, final ObservableEmitter<DownloadBean> subscriber) {
+
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (OkHttpInfo.isLOG)
+                    LogHelper.e(e.getMessage());
                 subscriber.onError(e);
+                subscriber.onComplete();
             }
 
             @Override
@@ -131,13 +161,13 @@ class DownloadObservable {
                 FileOutputStream fos = null;
                 // 储存下载文件的目录
                 String savePath = isExistDir(filePath);
-                if (OkHttpInfo.isLOG)
-                    Log.d("路径", filePath);
                 try {
                     is = response.body().byteStream();
                     long total = response.body().contentLength();
                     File file = new File(savePath, getNameFromUrl(url));
                     bean.filePath = file.getAbsolutePath();
+                    if (OkHttpInfo.isLOG)
+                        LogHelper.d(filePath);
                     fos = new FileOutputStream(file);
                     long sum = 0;
                     while ((len = is.read(buf)) != -1) {
@@ -145,38 +175,41 @@ class DownloadObservable {
                         sum += len;
                         int progress = (int) (sum * 1.0f / total * 100);
                         if (OkHttpInfo.isLOG)
-                            Log.d("进度", progress + "%");
+                            LogHelper.i(progress + "%");
                         bean.status = 0;
                         bean.progress = progress;
+                        if (OkHttpInfo.isLOG)
+                            LogHelper.d(bean);
                         // 下载中
                         subscriber.onNext(bean);
                     }
                     fos.flush();
                     // 下载完成
                     bean.status = 1;
+                    if (OkHttpInfo.isLOG)
+                        LogHelper.d(bean);
                     subscriber.onNext(bean);
                 } catch (Exception e) {
                     if (OkHttpInfo.isLOG)
-                        Log.e("报错", e.getMessage());
+                        LogHelper.e(e.getMessage());
                     subscriber.onError(e);
                 } finally {
                     try {
                         if (is != null)
                             is.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
                         if (OkHttpInfo.isLOG)
-                            Log.e("报错", e.getMessage());
+                            LogHelper.e(e.getMessage());
                     }
                     try {
                         if (fos != null)
                             fos.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
                         if (OkHttpInfo.isLOG)
-                            Log.e("报错", e.getMessage());
+                            LogHelper.e(e.getMessage());
                     }
                 }
+                subscriber.onComplete();
             }
         });
     }
@@ -202,14 +235,5 @@ class DownloadObservable {
     @NonNull
     private String getNameFromUrl(String url) {
         return url.substring(url.lastIndexOf("/") + 1);
-    }
-
-    /**
-     * 下载状态
-     */
-    class DownloadBean {
-        int progress;
-        int status = 0;
-        String filePath;
     }
 }

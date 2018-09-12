@@ -122,8 +122,8 @@ class ObservableRequests<T> {
             } else {
                 subscriber.onError(new Error(bean.getMsg()));
             }
+            subscriber.onComplete();
         }
-        subscriber.onComplete();
     }
 
     /**
@@ -182,7 +182,7 @@ class ObservableRequests<T> {
             }
             e.printStackTrace();
         }
-
+        subscriber.onComplete();
     }
 
     /**
@@ -200,6 +200,7 @@ class ObservableRequests<T> {
                     subscriber.onError(e);
                 }
                 e.printStackTrace();
+                subscriber.onComplete();
             }
 
             @Override
@@ -223,6 +224,7 @@ class ObservableRequests<T> {
                 }
                 T t = new Gson().fromJson(str, tClass);
                 subscriber.onNext(t);
+                subscriber.onComplete();
             }
         });
     }

@@ -2,7 +2,6 @@ package com.mylove.okhttp;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import okhttp3.logging.HttpLoggingInterceptor;
 
@@ -23,7 +22,7 @@ class Cache {
                 @Override
                 public void log(@NonNull String message) {
                     if (OkHttpInfo.isLOG) {
-                        Log.v(OkHttpInfo.TAG, message);
+                        LogHelper.d( message);
                     }
                 }
             }).setLevel(HttpLoggingInterceptor.Level.BODY);
