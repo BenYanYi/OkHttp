@@ -24,5 +24,7 @@ project 下添加
 #### 方法二(最新)
 module 下添加
 
-    compile 'com.yanyi.benyanyi:okhttplib:1.0.5'
+    compile 'com.yanyi.benyanyi:okhttplib:1.0.6'
     
+### 更新记录
+* 2018/09/12(1.0.6) 修复下载文件没有回调问题
