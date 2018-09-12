@@ -75,9 +75,10 @@ class DownloadObservable {
                         if (OkHttpInfo.isLOG) {
                             LogHelper.v(bean);
                         }
-                        onDownloadListener.onDownloading(bean.progress);
                         if (bean.status == 1) {
                             onDownloadListener.onSuccess(bean.filePath);
+                        } else {
+                            onDownloadListener.onDownloading(bean.progress);
                         }
                     }
 
@@ -189,10 +190,12 @@ class DownloadObservable {
                     if (OkHttpInfo.isLOG)
                         LogHelper.d(bean);
                     subscriber.onNext(bean);
+                    subscriber.onComplete();
                 } catch (Exception e) {
                     if (OkHttpInfo.isLOG)
                         LogHelper.e(e.getMessage());
                     subscriber.onError(e);
+                    subscriber.onComplete();
                 } finally {
                     try {
                         if (is != null)
@@ -209,7 +212,6 @@ class DownloadObservable {
                             LogHelper.e(e.getMessage());
                     }
                 }
-                subscriber.onComplete();
             }
         });
     }

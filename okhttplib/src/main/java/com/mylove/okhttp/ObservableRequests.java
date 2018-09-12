@@ -119,10 +119,11 @@ class ObservableRequests<T> {
             if (FormatUtil.isNotEmpty(json)) {
                 T t = new Gson().fromJson(json, tClass);
                 subscriber.onNext(t);
+                subscriber.onComplete();
             } else {
                 subscriber.onError(new Error(bean.getMsg()));
+                subscriber.onComplete();
             }
-            subscriber.onComplete();
         }
     }
 
@@ -163,13 +164,16 @@ class ObservableRequests<T> {
                 }
                 T t = new Gson().fromJson(str, tClass);
                 subscriber.onNext(t);
+                subscriber.onComplete();
             } else {
                 String json = CacheUtils.getInstance(mContext).getCacheToLocalJson(mCacheUrl);
                 if (FormatUtil.isNotEmpty(json)) {
                     T t = new Gson().fromJson(json, tClass);
                     subscriber.onNext(t);
+                    subscriber.onComplete();
                 } else {
                     subscriber.onError(new Exception("请求失败"));
+                    subscriber.onComplete();
                 }
             }
         } catch (IOException e) {
@@ -177,12 +181,13 @@ class ObservableRequests<T> {
             if (FormatUtil.isNotEmpty(json)) {
                 T t = new Gson().fromJson(json, tClass);
                 subscriber.onNext(t);
+                subscriber.onComplete();
             } else {
                 subscriber.onError(e);
+                subscriber.onComplete();
             }
             e.printStackTrace();
         }
-        subscriber.onComplete();
     }
 
     /**
@@ -196,11 +201,12 @@ class ObservableRequests<T> {
                 if (FormatUtil.isNotEmpty(json)) {
                     T t = new Gson().fromJson(json, tClass);
                     subscriber.onNext(t);
+                    subscriber.onComplete();
                 } else {
                     subscriber.onError(e);
+                    subscriber.onComplete();
                 }
                 e.printStackTrace();
-                subscriber.onComplete();
             }
 
             @Override
