@@ -24,5 +24,5 @@ project 下添加
 #### 方法二(最新)
 module 下添加
 
-    compile 'com.yanyi.benyanyi:okhttplib:1.0.3'
+    compile 'com.yanyi.benyanyi:okhttplib:1.0.5'
     
