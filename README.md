@@ -2,7 +2,7 @@
 ## OkHttp请求封装
 ### 使用方法
 
-#### 方法一(老版)
+#### 方法一(老版,已停止维护)
 module 下添加
 
      compile 'com.github.BenYanYi:OkHttp:1.1.6'
