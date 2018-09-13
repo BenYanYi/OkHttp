@@ -210,20 +210,6 @@ class ObservableRequest {
         });
     }
 
-    private Request request(String url, Map<Object, Object> map) {
-        FormBody.Builder builder = new FormBody.Builder();
-        if (FormatUtil.isMapNotEmpty(map)) {
-            for (Map.Entry<Object, Object> entry : map.entrySet()) {
-                builder.add(entry.getKey().toString(), entry.getValue().toString());
-            }
-        }
-        FormBody build = builder.build();
-        return new Request.Builder()
-                .url(url)
-                .post(build)
-                .build();
-    }
-
     /**
      * 判断请求方式
      *
@@ -236,8 +222,6 @@ class ObservableRequest {
             requestType = RequestType.POST;
         }
         switch (requestType) {
-            case GET:
-                return get(url, oMap);
             case POST_XML_SOAP:
                 return postXMLToSoap(url, oMap);
             case UP_FILE:
@@ -245,8 +229,10 @@ class ObservableRequest {
             case ALL:
                 return upAll(url, oMap);
             case POST:
-            default:
                 return post(url, oMap);
+            case GET:
+            default:
+                return get(url, oMap);
         }
     }
 

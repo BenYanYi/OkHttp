@@ -43,10 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private void init() {
         OkHttpInfo.soapDataTopString = "";
         JLog.init(true);
-        String url = "http://www.yanyi.red/bluetooth/dfu_pkg0904.zip";
+        String url = "http://www.yanyi.red/bluetooth/ios.pdf";
         String filePath = "/dectector/dfu/";
 //        String filePath = Environment.getExternalStorageDirectory().toString() + "/dectector/dfu/";
-        OkHttpUtil.getInstance(this).downloadFile(url).download(filePath, new OnDownloadListener() {
+        OkHttpUtil.getInstance(this).downloadFile(url).downloads(filePath, new OnDownloadListener() {
             @Override
             public void onDownloading(int progress) {
                 JLog.d(progress + "");

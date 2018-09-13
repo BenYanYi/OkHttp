@@ -2,6 +2,7 @@ package com.mylove.okhttp;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,4 +61,14 @@ class FileUtil {
         }
         return sdDir.toString();
     }
+
+    /**
+     * @param url
+     * @return 从下载连接中解析出文件名
+     */
+    @NonNull
+    static String getNameFromUrl(String url) {
+        return url.substring(url.lastIndexOf("/") + 1);
+    }
+
 }
