@@ -31,6 +31,7 @@ public class DownloadRequest {
      * @param filePath           储存下载文件的SDCard目录
      * @param onDownloadListener 监听
      */
+    @Deprecated
     public void download(String filePath, OnDownloadListener onDownloadListener) {
         //saveDir判断不能为空
         if (FormatUtil.isEmpty(filePath)) {
