@@ -4,20 +4,18 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableEmitter;
-import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -38,6 +36,7 @@ public class DownloadObservables {
     private static Context mContext;
     private String filePath;
     private static OkHttpClient okHttpClient;
+    private String filePaths = "";
 
     private DownloadObservables() {
     }
@@ -62,61 +61,54 @@ public class DownloadObservables {
         return instance;
     }
 
-    void request(String url, String filePath, final OnDownloadListener onDownloadListener) {
+    void request(String url, String filePath, final OnDownloadCallBack onDownloadCallBack) {
         this.filePath = filePath;
         getObservable(url)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
 //                .subscribeOn(Schedulers.newThread())
 //                .observeOn(Schedulers.newThread())
-                .subscribe(new Subscriber<DownloadBean>() {
-                    private Subscription mSubscription;
-
+                .subscribe(new Observer<Integer>() {
                     @Override
-                    public void onSubscribe(Subscription s) {
-                        s.request(1);//设置初始请求数据量为1
-                        mSubscription = s;
+                    public void onSubscribe(Disposable d) {
+
                     }
 
                     @Override
-                    public void onNext(DownloadBean downloadBean) {
-                        if (OkHttpInfo.isLOG) {
-                            LogHelper.v(downloadBean);
-                        }
-                        if (downloadBean.status == 1) {
-                            onDownloadListener.onSuccess(downloadBean.filePath);
-                        } else {
-                            onDownloadListener.onDownloading(downloadBean.progress);
-                        }
-                        mSubscription.request(1);
+                    public void onNext(Integer integer) {
+                        onDownloadCallBack.onDownloading(integer);
                     }
 
                     @Override
-                    public void onError(Throwable t) {
-                        if (OkHttpInfo.isLOG)
-                            LogHelper.e(t.getMessage());
-                        onDownloadListener.onFailure(t);
+                    public void onError(Throwable e) {
+                        onDownloadCallBack.onFailure(e);
                     }
 
                     @Override
                     public void onComplete() {
-                        if (OkHttpInfo.isLOG)
-                            LogHelper.v("*****");
-                        onDownloadListener.onCompleted();
+                        onDownloadCallBack.onSuccess(filePaths);
                     }
                 });
     }
 
-    private Flowable<DownloadBean> getObservable(final String url) {
-        return Flowable.create(new FlowableOnSubscribe<DownloadBean>() {
+    private Observable<Integer> getObservable(final String url) {
+        return Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
-            public void subscribe(FlowableEmitter<DownloadBean> e) throws Exception {
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
                 send(url, e);
             }
-        }, BackpressureStrategy.MISSING);
+        });
     }
+//    private Flowable<DownloadBean> getObservable(final String url) {
+//        return Flowable.create(new FlowableOnSubscribe<DownloadBean>() {
+//            @Override
+//            public void subscribe(FlowableEmitter<DownloadBean> e) throws Exception {
+//                send(url, e);
+//            }
+//        }, BackpressureStrategy.MISSING);
+//    }
 
-    private void send(final String url, FlowableEmitter<DownloadBean> subscriber) {
+    private void send(final String url, ObservableEmitter<Integer> subscriber) {
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
             Request request = new Request.Builder()
@@ -132,7 +124,7 @@ public class DownloadObservables {
     /**
      * 请求
      */
-    private void sendCall(final String url, Call call, final FlowableEmitter<DownloadBean> subscriber) {
+    private void sendCall(final String url, Call call, final ObservableEmitter<Integer> subscriber) {
 
         call.enqueue(new Callback() {
             @Override
@@ -140,7 +132,6 @@ public class DownloadObservables {
                 if (OkHttpInfo.isLOG)
                     LogHelper.e(e.getMessage());
                 subscriber.onError(e);
-                subscriber.onComplete();
             }
 
             @Override
@@ -172,20 +163,19 @@ public class DownloadObservables {
                         if (OkHttpInfo.isLOG)
                             LogHelper.d(bean);
                         // 下载中
-                        subscriber.onNext(bean);
+                        subscriber.onNext(progress);
                     }
                     fos.flush();
                     // 下载完成
                     bean.status = 1;
                     if (OkHttpInfo.isLOG)
                         LogHelper.d(bean);
-                    subscriber.onNext(bean);
+                    filePaths = file.getAbsolutePath();
                     subscriber.onComplete();
                 } catch (Exception e) {
                     if (OkHttpInfo.isLOG)
                         LogHelper.e(e.getMessage());
                     subscriber.onError(e);
-                    subscriber.onComplete();
                 } finally {
                     try {
                         if (is != null)

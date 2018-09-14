@@ -46,19 +46,14 @@ public class MainActivity extends AppCompatActivity {
         String url = "http://www.yanyi.red/bluetooth/ios.pdf";
         String filePath = "/dectector/dfu/";
 //        String filePath = Environment.getExternalStorageDirectory().toString() + "/dectector/dfu/";
-        OkHttpUtil.getInstance(this).downloadFile(url).downloads(filePath, new OnDownloadListener() {
+        OkHttpUtil.getInstance(this).downloadFile(url).downloads(filePath, new OnDownloadCallBack() {
             @Override
             public void onDownloading(int progress) {
                 JLog.d(progress + "");
             }
 
             @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public <T> void onSuccess(T message) {
+            public void onSuccess(String message) {
                 JLog.v(message);
             }
 

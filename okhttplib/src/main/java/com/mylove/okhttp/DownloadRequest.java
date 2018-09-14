@@ -41,13 +41,13 @@ public class DownloadRequest {
 
     /**
      * @param filePath           储存下载文件的SDCard目录
-     * @param onDownloadListener 监听
+     * @param onDownloadCallBack 监听
      */
-    public void downloads(String filePath, OnDownloadListener onDownloadListener) {
+    public void downloads(String filePath, OnDownloadCallBack onDownloadCallBack) {
         //saveDir判断不能为空
         if (FormatUtil.isEmpty(filePath)) {
             throw new NullPointerException("filePath is the SDCard directory of the downloaded file, cannot be empty.");
         }
-        DownloadObservables.getInstance(mContext).request(url, filePath, onDownloadListener);
+        DownloadObservables.getInstance(mContext).request(url, filePath, onDownloadCallBack);
     }
 }
