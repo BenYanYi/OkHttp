@@ -54,6 +54,7 @@ class ObservableIsRequests<T> {
                             .cache(Cache.privateCache(context))
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
+                            .writeTimeout(30, TimeUnit.SECONDS)
                             .build();
                 }
             }

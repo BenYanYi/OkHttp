@@ -10,6 +10,9 @@ import com.mylove.loglib.JLog;
 import com.yanyi.permissionlib.PermissionHelper;
 import com.yanyi.permissionlib.PermissionType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * @author myLove
@@ -41,6 +44,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
+        String url = "http://192.168.3.188/DTP/BPO_DTPInterfaceYYC.asmx/DTPInterfaceYYC";
+        Map<Object, Object> oMap = new HashMap<>();
+        oMap.put("UserID", "110");
+        oMap.put("TypeID", "1");
+        oMap.put("Mac", "");
+        oMap.put("CodeID", "");
+        oMap.put("Status", "");
+        oMap.put("DataSet", "");
+        OkHttpUtil.getInstance(this).post(url).async(oMap, new onOkHttpListener() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public <T> void onSuccess(T message) {
+                JLog.v(message);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                JLog.e(t.getMessage());
+            }
+        });
+    }
+
+    private void downloadDFU() {
         OkHttpInfo.soapDataTopString = "";
         JLog.init(true);
         String url = "http://www.yanyi.red/bluetooth/ios.pdf";
@@ -62,24 +92,6 @@ public class MainActivity extends AppCompatActivity {
                 JLog.e(t.getMessage());
             }
         });
-//        val url = "http://www.yanyi.red/bluetooth/dfu_pkg0904.zip"
-//        val filePath = Environment.getExternalStorageDirectory().toString() + "/dectector/dfu/"
-//        OkHttpUtil.getInstance(mContext).downloadFile(url).download(filePath, object : OnDownloadListener {
-//            override fun <String : Any?> onSuccess(message: String) {
-//                JLog.v("路径$message")
-//            }
-//
-//            override fun onFailure(t: Throwable?) {
-//                JLog.e(t!!.message)
-//            }
-//
-//            override fun onDownloading(progress: Int) {
-//                JLog.d("下载进度$progress%")
-//            }
-//
-//            override fun onCompleted() {
-//            }
-//        })
     }
 
     @Override
