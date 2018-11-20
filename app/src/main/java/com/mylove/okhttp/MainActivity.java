@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         oMap.put("CodeID", "");
         oMap.put("Status", "");
         oMap.put("DataSet", "");
-        OkHttpUtil.getInstance(this).post(url).async(oMap, new onOkHttpListener() {
+        OkHttpUtil.getInstance(this).post(url).async(oMap, new OnOkHttpListener() {
             @Override
             public void onCompleted() {
 

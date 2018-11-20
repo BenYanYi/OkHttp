@@ -27,23 +27,23 @@ public class AutoIsRequest {
         return instance;
     }
 
-    public void sync(onOkHttpCallBack onOkHttpCallBack) {
-        ObservableIsRequest.getInstance(mContext, CallType.SYNC).request(url, onOkHttpCallBack);
+    public void sync(OnOkHttpCallBack OnOkHttpCallBack) {
+        ObservableIsRequest.getInstance(mContext, CallType.SYNC).request(url, OnOkHttpCallBack);
     }
 
-    public <T> void sync(Class<T> tClass, onOkHttpCallBack onOkHttpCallBack) {
+    public <T> void sync(Class<T> tClass, OnOkHttpCallBack OnOkHttpCallBack) {
         ObservableIsRequests request = ObservableIsRequests.getInstance(mContext, CallType.SYNC);
         request.tClass = tClass;
-        request.request(url, onOkHttpCallBack);
+        request.request(url, OnOkHttpCallBack);
     }
 
-    public void async(onOkHttpCallBack onOkHttpCallBack) {
-        ObservableIsRequest.getInstance(mContext, CallType.ASYNC).request(url, onOkHttpCallBack);
+    public void async(OnOkHttpCallBack OnOkHttpCallBack) {
+        ObservableIsRequest.getInstance(mContext, CallType.ASYNC).request(url, OnOkHttpCallBack);
     }
 
-    public <T> void async(Class<T> tClass, onOkHttpCallBack onOkHttpCallBack) {
+    public <T> void async(Class<T> tClass, OnOkHttpCallBack OnOkHttpCallBack) {
         ObservableIsRequests request = ObservableIsRequests.getInstance(mContext, CallType.ASYNC);
         request.tClass = tClass;
-        request.request(url, onOkHttpCallBack);
+        request.request(url, OnOkHttpCallBack);
     }
 }

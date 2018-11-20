@@ -71,4 +71,19 @@ class FileUtil {
         return url.substring(url.lastIndexOf("/") + 1);
     }
 
+    /**
+     * 判断当前url下载的文件是否为自己所需的
+     *
+     * @param url
+     * @param condition 判断条件
+     * @return
+     */
+    static boolean ifUrl(String url, String condition) {
+        String str = url.substring(url.lastIndexOf("."));
+        if (FormatUtil.isNotEmpty(str)) {
+            return str.equals(condition);
+        } else {
+            return false;
+        }
+    }
 }

@@ -38,7 +38,7 @@ class ObservableIsRequests<T> {
     private static OkHttpClient okHttpClient;
     private String mCacheUrl = "";
 
-    private onOkHttpCallBack okHttpCallBack;
+    private OnOkHttpCallBack okHttpCallBack;
 
     public Class<T> tClass;
 
@@ -64,8 +64,8 @@ class ObservableIsRequests<T> {
         return instance;
     }
 
-    void request(String url, onOkHttpCallBack onOkHttpCallBack) {
-        this.okHttpCallBack = onOkHttpCallBack;
+    void request(String url, OnOkHttpCallBack OnOkHttpCallBack) {
+        this.okHttpCallBack = OnOkHttpCallBack;
         getObservable(url).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .serialize().subscribe(new Observer<T>() {
             @Override

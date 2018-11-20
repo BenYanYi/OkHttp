@@ -34,7 +34,7 @@ class ObservableIsRequest {
     private static OkHttpClient okHttpClient;
     private String mCacheUrl = "";
 
-    private onOkHttpCallBack okHttpCallBack;
+    private OnOkHttpCallBack okHttpCallBack;
 
     static ObservableIsRequest getInstance(Context context, CallType type2) {
         if (instance == null) {
@@ -58,8 +58,8 @@ class ObservableIsRequest {
         return instance;
     }
 
-    void request(String url, onOkHttpCallBack onOkHttpCallBack) {
-        this.okHttpCallBack = onOkHttpCallBack;
+    void request(String url, OnOkHttpCallBack OnOkHttpCallBack) {
+        this.okHttpCallBack = OnOkHttpCallBack;
         getObservable(url).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .serialize()//保证上游下游同一线程 ，防止不同线程下 onError 通知会跳到(并吞掉)原始Observable发射的数据项前面的错误行为
                 .subscribe(new Observer<String>() {

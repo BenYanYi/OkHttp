@@ -6,7 +6,7 @@ package com.mylove.okhttp;
  * @email ben@yanyi.red
  * @overview
  */
-public interface OnDownloadListener extends onOkHttpListener {
+public interface OnDownloadListener extends OnOkHttpListener {
     /**
      * @param progress 下载进度
      */

@@ -8,6 +8,6 @@ import okhttp3.Request;
  * @email ben@yanyi.red
  * @overview
  */
-public interface onOkHttpCallBack extends onOkHttpListener {
+public interface OnOkHttpCallBack extends OnOkHttpListener {
     Request setRequest(String url);
 }

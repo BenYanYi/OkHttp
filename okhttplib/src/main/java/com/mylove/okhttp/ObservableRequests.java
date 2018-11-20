@@ -71,7 +71,7 @@ class ObservableRequests<T> {
         return instance;
     }
 
-    void request(String url, Map<Object, Object> oMap, final onOkHttpListener onOkHttpListener) {
+    void request(String url, Map<Object, Object> oMap, final OnOkHttpListener OnOkHttpListener) {
         getObservable(url, oMap).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .serialize().subscribe(new Observer<T>() {
             @Override
@@ -81,17 +81,17 @@ class ObservableRequests<T> {
 
             @Override
             public void onNext(T t) {
-                onOkHttpListener.onSuccess(t);
+                OnOkHttpListener.onSuccess(t);
             }
 
             @Override
             public void onError(Throwable e) {
-                onOkHttpListener.onFailure(e);
+                OnOkHttpListener.onFailure(e);
             }
 
             @Override
             public void onComplete() {
-                onOkHttpListener.onCompleted();
+                OnOkHttpListener.onCompleted();
             }
         });
     }

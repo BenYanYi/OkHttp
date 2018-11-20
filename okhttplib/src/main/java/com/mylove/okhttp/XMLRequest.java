@@ -34,11 +34,11 @@ public class XMLRequest {
         return instance;
     }
 
-    public void sync(Map<Object, Object> map, onOkHttpListener onOkHttpListener) {
-        ObservableRequest.getInstance(mContext, requestType, CallType.SYNC).request(url, map, onOkHttpListener);
+    public void sync(Map<Object, Object> map, OnOkHttpListener OnOkHttpListener) {
+        ObservableRequest.getInstance(mContext, requestType, CallType.SYNC).request(url, map, OnOkHttpListener);
     }
 
-    public void async(Map<Object, Object> map, onOkHttpListener onOkHttpListener) {
-        ObservableRequest.getInstance(mContext, requestType, CallType.ASYNC).request(url, map, onOkHttpListener);
+    public void async(Map<Object, Object> map, OnOkHttpListener OnOkHttpListener) {
+        ObservableRequest.getInstance(mContext, requestType, CallType.ASYNC).request(url, map, OnOkHttpListener);
     }
 }

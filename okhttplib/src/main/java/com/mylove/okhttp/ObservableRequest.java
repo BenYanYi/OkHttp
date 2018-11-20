@@ -65,7 +65,7 @@ class ObservableRequest {
         return instance;
     }
 
-    void request(String url, Map<Object, Object> oMap, final onOkHttpListener onOkHttpListener) {
+    void request(String url, Map<Object, Object> oMap, final OnOkHttpListener OnOkHttpListener) {
         getObservable(url, oMap).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .serialize()//保证上游下游同一线程 ，防止不同线程下 onError 通知会跳到(并吞掉)原始Observable发射的数据项前面的错误行为
                 .subscribe(new Observer<String>() {
@@ -76,17 +76,17 @@ class ObservableRequest {
 
                     @Override
                     public void onNext(String str) {
-                        onOkHttpListener.onSuccess(str);
+                        OnOkHttpListener.onSuccess(str);
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        onOkHttpListener.onFailure(e);
+                        OnOkHttpListener.onFailure(e);
                     }
 
                     @Override
                     public void onComplete() {
-                        onOkHttpListener.onCompleted();
+                        OnOkHttpListener.onCompleted();
                     }
                 });
     }

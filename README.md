@@ -24,9 +24,10 @@ project 下添加
 #### 方法二(最新)
 module 下添加
 
-    compile 'com.yanyi.benyanyi:okhttplib:1.1.0'
+    compile 'com.yanyi.benyanyi:okhttplib:1.1.1'
     
 ### 更新记录
+* 2018/11/20(1.1.1) 添加带弹窗下载方法(UpdateUtil类),支持下载弹窗提示，下载进度弹窗，下载进度通知栏，强行下载
 * 2018/10/10(1.1.0) 添加写入超时限定
 * 2018/09/28(1.0.9) 添加自定义Request方法
 * 2018/09/14(1.0.8) 优化下载文件方法
