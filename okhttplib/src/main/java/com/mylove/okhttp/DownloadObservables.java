@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import com.mylove.okhttp.listener.OnDownloadCallBack;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

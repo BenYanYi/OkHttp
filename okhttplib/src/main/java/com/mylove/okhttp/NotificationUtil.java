@@ -1,5 +1,6 @@
 package com.mylove.okhttp;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.widget.RemoteViews;
+import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +21,6 @@ import java.util.Map;
  * @overview
  */
 public class NotificationUtil {
-    private Context mContext;
     // NotificationManager ： 是状态栏通知的管理类，负责发通知、清楚通知等。
     private NotificationManager manager;
     // 定义Map来保存Notification对象
@@ -30,11 +31,13 @@ public class NotificationUtil {
     private static final String NOTIFICATION_CHANNEL_NAME = "Update";
     private NotificationManager notificationManager = null;
     private String tickerText;
+    private TextView tv;
+    private Activity mActivity;
 
-    public NotificationUtil(Context context) {
-        this.mContext = context;
+    public NotificationUtil(Activity activity) {
+        this.mActivity = activity;
         // NotificationManager 是一个系统Service，必须通过 getSystemService()方法来获取。
-        manager = (NotificationManager) mContext
+        manager = (NotificationManager) mActivity
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         map = new HashMap<>();
     }
@@ -63,9 +66,9 @@ public class NotificationUtil {
             if (android.os.Build.VERSION.SDK_INT >= 26) {
                 //Android O上对Notification进行了修改，如果设置的targetSDKVersion>=26建议使用此种方式创建通知栏
                 if (null == notificationManager) {
-                    notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                    notificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
                 }
-                String channelId = mContext.getPackageName();
+                String channelId = mActivity.getPackageName();
                 if (!isCreateChannel) {
                     NotificationChannel notificationChannel = new NotificationChannel(channelId,
                             NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
@@ -75,7 +78,7 @@ public class NotificationUtil {
                     notificationManager.createNotificationChannel(notificationChannel);
                     isCreateChannel = true;
                 }
-                builder = new Notification.Builder(mContext.getApplicationContext(), channelId);
+                builder = new Notification.Builder(mActivity.getApplicationContext(), channelId);
                 notification = builder.build();
             } else {
                 notification = new Notification();
@@ -90,14 +93,16 @@ public class NotificationUtil {
             notification.flags = Notification.FLAG_AUTO_CANCEL;
             // 设置点击通知栏操作
             if (aClass != null) {
-                Intent in = new Intent(mContext, aClass);// 点击跳转到指定页面
-                notification.contentIntent = PendingIntent.getActivity(mContext, 0, in,
+                Intent in = new Intent(mActivity, aClass);// 点击跳转到指定页面
+                notification.contentIntent = PendingIntent.getActivity(mActivity, 0, in,
                         0);
             }
             // 设置通知的显示视图
             notification.contentView = new RemoteViews(
-                    mContext.getPackageName(),
+                    mActivity.getPackageName(),
                     R.layout.notification_contentview);
+            tv = mActivity.findViewById(R.id.title);
+            tv.setText(tickerText);
             // 发出通知
             manager.notify(notificationId, notification);
             map.put(notificationId, notification);// 存入Map中
@@ -112,7 +117,7 @@ public class NotificationUtil {
         map.remove(notificationId);
     }
 
-    public void updateProgress(int notificationId, int progress) {
+    public void updateProgressText(int notificationId, int progress) {
         Notification notify = map.get(notificationId);
         if (null != notify) {
             // 修改进度条
@@ -126,16 +131,18 @@ public class NotificationUtil {
         if (null != notify) {
             // 修改进度条
             notify.tickerText = text;
+            tv.setText(tickerText);
             manager.notify(notificationId, notify);
         }
     }
 
-    public void updateProgress(int notificationId, int progress, String text) {
+    public void updateProgressText(int notificationId, int progress, String text) {
         Notification notify = map.get(notificationId);
         if (null != notify) {
             notify.tickerText = text;
             // 修改进度条
             notify.contentView.setProgressBar(R.id.pBar, 100, progress, false);
+            tv.setText(tickerText);
             manager.notify(notificationId, notify);
         }
     }

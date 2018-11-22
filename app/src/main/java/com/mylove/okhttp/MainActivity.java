@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.mylove.loglib.JLog;
+import com.mylove.okhttp.listener.OnDownloadCallBack;
+import com.mylove.okhttp.listener.OnOkHttpListener;
 import com.yanyi.permissionlib.PermissionHelper;
 import com.yanyi.permissionlib.PermissionType;
 

@@ -11,6 +11,8 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
+import com.mylove.okhttp.listener.OnDownloadCallBack;
+
 import java.io.File;
 
 /**
@@ -144,7 +146,7 @@ public class UpdateUtil {
             message = "是否下载";
         }
         if (isShowNotice) {
-            notificationUtil = new NotificationUtil(mActivity.getApplicationContext()).setIcon(icon).setTickerText(title);
+            notificationUtil = new NotificationUtil(mActivity).setIcon(icon).setTickerText(title);
             if (aClass != null) {
                 notificationUtil.setClass(aClass);
             }
@@ -199,7 +201,7 @@ public class UpdateUtil {
             @Override
             public void onDownloading(int progress) {
                 if (notificationUtil != null && isShowNotice) {
-                    notificationUtil.updateProgress(1020, progress, "已下载" + progress + "%");
+                    notificationUtil.updateProgressText(1020, progress, "已下载" + progress + "%");
                 }
                 progressDialog.setProgress(progress);
                 if (downloadCallBack != null) {
