@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.widget.RemoteViews;
-import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +29,13 @@ public class NotificationUtil {
     private boolean isCreateChannel = false;
     private static final String NOTIFICATION_CHANNEL_NAME = "Update";
     private NotificationManager notificationManager = null;
-    private String tickerText;
-    private TextView tv;
     private Activity mActivity;
+    private String title;
 
-    public NotificationUtil(Activity activity) {
+    public NotificationUtil(Activity activity, int icon, String title) {
         this.mActivity = activity;
+        this.icon = icon;
+        this.title = title;
         // NotificationManager 是一个系统Service，必须通过 getSystemService()方法来获取。
         manager = (NotificationManager) mActivity
                 .getSystemService(Context.NOTIFICATION_SERVICE);
@@ -47,13 +47,12 @@ public class NotificationUtil {
         return this;
     }
 
-    public NotificationUtil setClass(Class<?> aClass) {
-        this.aClass = aClass;
-        return this;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public NotificationUtil setTickerText(String tickerText) {
-        this.tickerText = tickerText;
+    public NotificationUtil setClass(Class<?> aClass) {
+        this.aClass = aClass;
         return this;
     }
 
@@ -83,8 +82,6 @@ public class NotificationUtil {
             } else {
                 notification = new Notification();
             }
-            // 设置通知栏滚动显示文字
-            notification.tickerText = tickerText;
             // 设置显示时间
             notification.when = System.currentTimeMillis();
             // 设置通知显示的图标
@@ -101,8 +98,8 @@ public class NotificationUtil {
             notification.contentView = new RemoteViews(
                     mActivity.getPackageName(),
                     R.layout.notification_contentview);
-            tv = mActivity.findViewById(R.id.title);
-            tv.setText(tickerText);
+            notification.contentView.setTextViewText(R.id.title, title);
+            notification.contentView.setImageViewResource(R.id.icon, icon);
             // 发出通知
             manager.notify(notificationId, notification);
             map.put(notificationId, notification);// 存入Map中
@@ -130,8 +127,7 @@ public class NotificationUtil {
         Notification notify = map.get(notificationId);
         if (null != notify) {
             // 修改进度条
-            notify.tickerText = text;
-            tv.setText(tickerText);
+            notify.contentView.setTextViewText(R.id.title, title);
             manager.notify(notificationId, notify);
         }
     }
@@ -139,10 +135,9 @@ public class NotificationUtil {
     public void updateProgressText(int notificationId, int progress, String text) {
         Notification notify = map.get(notificationId);
         if (null != notify) {
-            notify.tickerText = text;
+            notify.contentView.setTextViewText(R.id.title, text);
             // 修改进度条
             notify.contentView.setProgressBar(R.id.pBar, 100, progress, false);
-            tv.setText(tickerText);
             manager.notify(notificationId, notify);
         }
     }

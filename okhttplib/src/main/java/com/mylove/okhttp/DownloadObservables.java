@@ -15,9 +15,11 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -39,6 +41,7 @@ public class DownloadObservables {
     private String filePath;
     private static OkHttpClient okHttpClient;
     private String filePaths = "";
+    private String url;
 
     private DownloadObservables() {
     }
@@ -66,7 +69,9 @@ public class DownloadObservables {
 
     void request(String url, String filePath, final OnDownloadCallBack onDownloadCallBack) {
         this.filePath = filePath;
-        getObservable(url)
+        this.url = url;
+        getObservableMap()
+//        getObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
 //                .subscribeOn(Schedulers.newThread())
@@ -94,11 +99,25 @@ public class DownloadObservables {
                 });
     }
 
-    private Observable<Integer> getObservable(final String url) {
+    private Observable<Integer> getObservable() {
         return Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
-            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
-                send(url, e);
+            public void subscribe(ObservableEmitter<Integer> emitter) {
+                send(emitter);
+            }
+        });
+    }
+
+    private Observable<Integer> getObservableMap() {
+        return Observable.just(url).flatMap(new Function<String, ObservableSource<Integer>>() {
+            @Override
+            public ObservableSource<Integer> apply(String s) {
+                return Observable.create(new ObservableOnSubscribe<Integer>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<Integer> emitter) {
+                        send(emitter);
+                    }
+                });
             }
         });
     }
@@ -111,7 +130,7 @@ public class DownloadObservables {
 //        }, BackpressureStrategy.MISSING);
 //    }
 
-    private void send(final String url, ObservableEmitter<Integer> subscriber) {
+    private void send(ObservableEmitter<Integer> subscriber) {
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
             Request request = new Request.Builder()
@@ -174,7 +193,6 @@ public class DownloadObservables {
                     if (OkHttpInfo.isLOG)
                         LogHelper.d(bean);
                     filePaths = file.getAbsolutePath();
-                    subscriber.onComplete();
                 } catch (Exception e) {
                     if (OkHttpInfo.isLOG)
                         LogHelper.e(e.getMessage());
@@ -195,6 +213,7 @@ public class DownloadObservables {
                             LogHelper.e(e.getMessage());
                     }
                 }
+                subscriber.onComplete();
             }
         });
     }

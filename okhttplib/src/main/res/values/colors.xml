@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="them_color">#FF4081</color>
+    <!--<color name="them_color">#282a2b</color>-->
+
+    <color name="comm_red">#f00</color>
+    <color name="comm_blue">#00f</color>
+    <color name="comm_white">#fff</color>
+    <color name="comm_green">#0f0</color>
+    <color name="comm_gray">#aaa</color>
+
+    <color name="comm_white2">#e7e7e7</color>
+    <color name="comm_white_tr">#66ffffff</color>
+    <color name="comm_black">#505050</color>
+    <color name="comm_black1">#000000</color>
+    <color name="comm_black2">#919191</color>
+    <color name="comm_red_s">#ff2f00</color>
+    <color name="comm_green_s">#39ce08</color>
+    <color name="comm_green_b">#397B19</color>
+    <color name="comm_blue1">#2af</color>
+    <color name="comm_blue2">#22e5ff</color>
+    <color name="comm_blue_big">#26f</color>
+    <color name="comm_violet">#9A32CD</color>
+    <color name="comm_transparent">#00000000</color>
+    <color name="comm_find_gray">#d5eaeaea</color>
+    <color name="comm_light_yellow">#FDFDB3</color>
+    <color name="comm_yellow">#f5ce64</color>
+    <color name="comm_green_blue">#52dfc8</color>
+    <color name="comm_orange">#f1962d</color>
+    <color name="comm_orange_red">#ff6000</color>
+    <color name="comm_data_time">#2f19dfbb</color>
+    <color name="comm_gray_background">#60000000</color>
+    <color name="comm_light_blue">#C0E3FF</color>
+</resources>

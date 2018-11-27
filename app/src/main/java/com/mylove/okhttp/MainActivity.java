@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.mylove.loglib.JLog;
-import com.mylove.okhttp.listener.OnDownloadCallBack;
 import com.mylove.okhttp.listener.OnOkHttpListener;
 import com.yanyi.permissionlib.PermissionHelper;
 import com.yanyi.permissionlib.PermissionType;
@@ -35,7 +34,8 @@ public class MainActivity extends AppCompatActivity {
         permissionHelper.hasPermission(new PermissionHelper.OnPermissionListener() {
             @Override
             public void onAllPermissionSuccess() {
-                init();
+//                init();
+                downloadDFU();
             }
 
             @Override
@@ -75,25 +75,34 @@ public class MainActivity extends AppCompatActivity {
     private void downloadDFU() {
         OkHttpInfo.soapDataTopString = "";
         JLog.init(true);
-        String url = "http://www.yanyi.red/bluetooth/ios.pdf";
-        String filePath = "/dectector/dfu/";
-//        String filePath = Environment.getExternalStorageDirectory().toString() + "/dectector/dfu/";
-        OkHttpUtil.getInstance(this).downloadFile(url).downloads(filePath, new OnDownloadCallBack() {
-            @Override
-            public void onDownloading(int progress) {
-                JLog.d(progress + "");
-            }
-
-            @Override
-            public void onSuccess(String message) {
-                JLog.v(message);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                JLog.e(t.getMessage());
-            }
-        });
+        String url = "http://www.yanyi.red/bluetooth/dectector/dectector.apk";
+//        String filePath = "/dectector/dfu/";
+////        String filePath = Environment.getExternalStorageDirectory().toString() + "/dectector/dfu/";
+//        OkHttpUtil.getInstance(this).downloadFile(url).downloads(filePath, new OnDownloadCallBack() {
+//            @Override
+//            public void onDownloading(int progress) {
+//                JLog.d(progress + "");
+//            }
+//
+//            @Override
+//            public void onSuccess(String message) {
+//                JLog.v(message);
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable t) {
+//                JLog.e(t.getMessage());
+//            }
+//        });
+        UpdateUtil updateUtil = new UpdateUtil(this, url)
+                .setIcon(R.mipmap.ic_launcher)
+                .setMessage("更新")
+                .setTitle("更新测试")
+                .setLimit(false)
+                .setShowNotice(true)
+                .setInstallApk(true)
+                .setStartClass(MainActivity.class);
+        updateUtil.request();
     }
 
     @Override

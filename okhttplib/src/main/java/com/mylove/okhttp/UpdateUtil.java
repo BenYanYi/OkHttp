@@ -146,12 +146,12 @@ public class UpdateUtil {
             message = "是否下载";
         }
         if (isShowNotice) {
-            notificationUtil = new NotificationUtil(mActivity).setIcon(icon).setTickerText(title);
+            notificationUtil = new NotificationUtil(mActivity, icon, title);
             if (aClass != null) {
                 notificationUtil.setClass(aClass);
             }
         }
-        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity.getApplicationContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         if (icon != 0) {
             builder.setIcon(icon);
         }
@@ -174,10 +174,11 @@ public class UpdateUtil {
         }
         builder.setCancelable(!isLimit);
         builder.show();
+
     }
 
     private void progressDialog() {
-        progressDialog = new ProgressDialog(mActivity.getApplicationContext());
+        progressDialog = new ProgressDialog(mActivity);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setTitle(title);
         progressDialog.setMessage("正在下载");
@@ -197,13 +198,14 @@ public class UpdateUtil {
         if (FormatUtil.isEmpty(filePath)) {
             filePath = mActivity.getResources().getString(R.string.app_name);
         }
-        OkHttpUtil.getInstance(mActivity.getApplication()).downloadFile(downloadUrl).downloads(filePath, new OnDownloadCallBack() {
+        OkHttpUtil.getInstance(mActivity).downloadFile(downloadUrl).downloads(filePath, new OnDownloadCallBack() {
             @Override
             public void onDownloading(int progress) {
                 if (notificationUtil != null && isShowNotice) {
                     notificationUtil.updateProgressText(1020, progress, "已下载" + progress + "%");
                 }
                 progressDialog.setProgress(progress);
+                progressDialog.setMessage("已下载" + progress + "%");
                 if (downloadCallBack != null) {
                     downloadCallBack.onDownloading(progress);
                 }
@@ -223,7 +225,7 @@ public class UpdateUtil {
 
             @Override
             public void onFailure(Throwable throwable) {
-                Toast.makeText(mActivity.getApplicationContext(), "下载失败", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mActivity, "下载失败", Toast.LENGTH_SHORT).show();
                 LogHelper.e(throwable.getMessage());
                 if (downloadCallBack != null) {
                     downloadCallBack.onFailure(throwable);
@@ -250,7 +252,7 @@ public class UpdateUtil {
         //判读版本是否在7.0以上
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             //在AndroidManifest中的android:authorities值
-            Uri apkUri = FileProvider.getUriForFile(mActivity.getApplication(), mActivity.getPackageName() + ".fileProvider", file);
+            Uri apkUri = FileProvider.getUriForFile(mActivity, mActivity.getPackageName() + ".fileProvider", file);
             Intent install = new Intent(Intent.ACTION_VIEW);
             install.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
