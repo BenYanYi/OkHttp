@@ -1,6 +1,7 @@
 package com.mylove.okhttp;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.mylove.loglib.JLog;
 
@@ -12,9 +13,13 @@ import com.mylove.loglib.JLog;
  */
 
 public class AppContext extends Application {
+
+    public static Context mContext;
+
     @Override
     public void onCreate() {
         super.onCreate();
         JLog.init(true);
+        mContext = this;
     }
 }

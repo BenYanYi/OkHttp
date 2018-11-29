@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAllPermissionSuccess() {
 //                init();
-                downloadDFU();
+                downloadAPK();
             }
 
             @Override
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void downloadDFU() {
+    private void downloadAPK() {
         OkHttpInfo.soapDataTopString = "";
         JLog.init(true);
         String url = "http://www.yanyi.red/bluetooth/dectector/dectector.apk";
