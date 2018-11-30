@@ -9,9 +9,9 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.mylove.loglib.JLog;
+import com.mylove.okhttp.download.DownLoadObserver;
 import com.mylove.okhttp.download.DownloadInfo;
 import com.mylove.okhttp.download.DownloadManager;
-import com.mylove.okhttp.download.OnDownloadCallBack;
 
 /**
  * @author BenYanYi
@@ -59,17 +59,13 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.main_btn_down1:
-                DownloadManager.getInstance(mContext).download(url1, new OnDownloadCallBack() {
+                DownloadManager.getInstance(mContext).download(url1, new DownLoadObserver() {
                     @Override
                     public void onNext(DownloadInfo downloadInfo) {
+                        super.onNext(downloadInfo);
                         JLog.v(downloadInfo.getProgress());
                         progress1.setMax((int) downloadInfo.getTotal());
                         progress1.setProgress((int) downloadInfo.getProgress());
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
                     }
 
                     @Override
@@ -79,7 +75,7 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
                 });
                 break;
             case R.id.main_btn_down2:
-                DownloadManager.getInstance(mContext).download(url2, new OnDownloadCallBack() {
+                DownloadManager.getInstance(mContext).download(url2, new DownLoadObserver() {
                     @Override
                     public void onNext(DownloadInfo downloadInfo) {
                         JLog.v(downloadInfo.getProgress());
@@ -97,7 +93,7 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
                 });
                 break;
             case R.id.main_btn_down3:
-                DownloadManager.getInstance(mContext).download(url3, new OnDownloadCallBack() {
+                DownloadManager.getInstance(mContext).download(url3, new DownLoadObserver() {
                     @Override
                     public void onNext(DownloadInfo downloadInfo) {
                         JLog.v(downloadInfo.getProgress());

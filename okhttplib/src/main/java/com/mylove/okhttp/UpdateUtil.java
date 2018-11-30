@@ -9,7 +9,6 @@ import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
-import android.widget.Toast;
 
 import com.mylove.okhttp.listener.OnDownloadCallBack;
 
@@ -40,7 +39,7 @@ public class UpdateUtil {
     private ProgressDialog progressDialog;
 
     private boolean isInstallApk = false;
-    private OnDownloadCallBack downloadCallBack;
+    private OnDownloadCallBack onDownloadCallBack;
 
     private String filePath;
 
@@ -123,7 +122,7 @@ public class UpdateUtil {
      * 下载监听
      */
     public UpdateUtil setDownloadCallBack(OnDownloadCallBack downloadCallBack) {
-        this.downloadCallBack = downloadCallBack;
+        this.onDownloadCallBack = downloadCallBack;
         return this;
     }
 
@@ -196,39 +195,41 @@ public class UpdateUtil {
 
     private void download() {
         if (FormatUtil.isEmpty(filePath)) {
-            filePath = mActivity.getResources().getString(R.string.app_name);
+            filePath = mActivity.getPackageName();
         }
-        OkHttpUtil.getInstance(mActivity).downloadFile(downloadUrl).downloads(filePath, new OnDownloadCallBack() {
+
+        OkHttpUtil.getInstance(mActivity).downloadFile(downloadUrl).downloads(filePath, new DownloadObserver() {
             @Override
-            public void onDownloading(int progress) {
-                if (notificationUtil != null && isShowNotice) {
-                    notificationUtil.updateProgressText(1020, progress, "已下载" + progress + "%");
-                }
-                progressDialog.setProgress(progress);
-                progressDialog.setMessage("已下载" + progress + "%");
-                if (downloadCallBack != null) {
-                    downloadCallBack.onDownloading(progress);
+            public void onNext(DownloadBean downloadBean) {
+                if (downloadBean == null) {
+                    if (onDownloadCallBack != null) {
+                        onDownloadCallBack.onFailure(new Throwable("下载失败"));
+                    }
+                } else if (downloadBean.status == 0) {
+                    if (notificationUtil != null && isShowNotice) {
+                        notificationUtil.updateProgressText(1020, downloadBean.progress, "已下载" + downloadBean.progress + "%");
+                    }
+                    progressDialog.setProgress(downloadBean.progress);
+                    progressDialog.setMax(100);
+                    progressDialog.setMessage("已下载" + downloadBean.progress + "%");
+                    if (onDownloadCallBack != null) {
+                        onDownloadCallBack.onDownloading(downloadBean.progress);
+                    }
+                } else if (downloadBean.status == 1) {
+                    d.dispose();
+                    progressDialog.dismiss();
+                    notificationUtil.cancel(1020);
+                    if (isInstallApk && FileUtil.ifUrl(downloadBean.filePath, ".apk")) {
+                        installApk(new File(downloadBean.filePath));
+                    }
                 }
             }
 
             @Override
-            public void onSuccess(String filePath) {
-                progressDialog.dismiss();
-                notificationUtil.cancel(1020);
-                if (isInstallApk && FileUtil.ifUrl(filePath, ".apk")) {
-                    installApk(new File(filePath));
-                }
-                if (downloadCallBack != null) {
-                    downloadCallBack.onSuccess(filePath);
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                Toast.makeText(mActivity, "下载失败", Toast.LENGTH_SHORT).show();
-                LogHelper.e(throwable.getMessage());
-                if (downloadCallBack != null) {
-                    downloadCallBack.onFailure(throwable);
+            public void onError(Throwable e) {
+                super.onError(e);
+                if (onDownloadCallBack != null) {
+                    onDownloadCallBack.onFailure(e);
                 }
             }
         });
@@ -239,19 +240,11 @@ public class UpdateUtil {
      *
      * @param file
      */
-    public void installApk(final File file) {
-//        if (Build.VERSION.SDK_INT >= 26) {
-//            boolean b = getPackageManager().canRequestPackageInstalls();
-//            if (b) {
-//                installApk();//安装应用的逻辑(写自己的就可以)
-//            } else {
-//                //请求安装未知应用来源的权限
-//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.REQUEST_INSTALL_PACKAGES}, INSTALL_PACKAGES_REQUESTCODE);
-//            }
-//        }
+    private void installApk(File file) {
         //判读版本是否在7.0以上
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             //在AndroidManifest中的android:authorities值
+            LogHelper.a(file.getAbsolutePath());
             Uri apkUri = FileProvider.getUriForFile(mActivity, mActivity.getPackageName() + ".fileProvider", file);
             Intent install = new Intent(Intent.ACTION_VIEW);
             install.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

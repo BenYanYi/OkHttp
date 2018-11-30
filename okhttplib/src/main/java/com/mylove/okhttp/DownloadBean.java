@@ -6,7 +6,7 @@ package com.mylove.okhttp;
  * @email ben@yanyi.red
  * @overview 下载状态
  */
-class DownloadBean {
+public class DownloadBean {
     public int progress;
     public int status = 0;
     public String filePath;

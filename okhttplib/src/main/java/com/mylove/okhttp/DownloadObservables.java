@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.mylove.okhttp.listener.OnDownloadCallBack;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,9 +14,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
@@ -67,54 +63,34 @@ public class DownloadObservables {
         return instance;
     }
 
-    void request(String url, String filePath, final OnDownloadCallBack onDownloadCallBack) {
+    void request(String url, String filePath, DownloadObserver downloadObserver) {
         this.filePath = filePath;
         this.url = url;
-        getObservableMap()
-//        getObservable()
+//        getObservableMap()
+        getObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
 //                .subscribeOn(Schedulers.newThread())
 //                .observeOn(Schedulers.newThread())
-                .subscribe(new Observer<Integer>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(Integer integer) {
-                        onDownloadCallBack.onDownloading(integer);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        onDownloadCallBack.onFailure(e);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        onDownloadCallBack.onSuccess(filePaths);
-                    }
-                });
+                .subscribe(downloadObserver);
     }
 
-    private Observable<Integer> getObservable() {
-        return Observable.create(new ObservableOnSubscribe<Integer>() {
+    private Observable<DownloadBean> getObservable() {
+        return Observable.create(new ObservableOnSubscribe<DownloadBean>() {
             @Override
-            public void subscribe(ObservableEmitter<Integer> emitter) {
+            public void subscribe(ObservableEmitter<DownloadBean> emitter) {
                 send(emitter);
             }
         });
     }
 
-    private Observable<Integer> getObservableMap() {
-        return Observable.just(url).flatMap(new Function<String, ObservableSource<Integer>>() {
+    private Observable<DownloadBean> getObservableMap() {
+        return Observable.just(url).flatMap(new Function<String, ObservableSource<DownloadBean>>() {
             @Override
-            public ObservableSource<Integer> apply(String s) {
-                return Observable.create(new ObservableOnSubscribe<Integer>() {
+            public ObservableSource<DownloadBean> apply(String s) {
+                return Observable.create(new ObservableOnSubscribe<DownloadBean>() {
                     @Override
-                    public void subscribe(ObservableEmitter<Integer> emitter) {
+                    public void subscribe(ObservableEmitter<DownloadBean> emitter) {
                         send(emitter);
                     }
                 });
@@ -130,7 +106,7 @@ public class DownloadObservables {
 //        }, BackpressureStrategy.MISSING);
 //    }
 
-    private void send(ObservableEmitter<Integer> subscriber) {
+    private void send(ObservableEmitter<DownloadBean> subscriber) {
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
             Request request = new Request.Builder()
@@ -146,7 +122,7 @@ public class DownloadObservables {
     /**
      * 请求
      */
-    private void sendCall(final String url, Call call, final ObservableEmitter<Integer> subscriber) {
+    private void sendCall(final String url, Call call, final ObservableEmitter<DownloadBean> subscriber) {
 
         call.enqueue(new Callback() {
             @Override
@@ -185,10 +161,11 @@ public class DownloadObservables {
                         if (OkHttpInfo.isLOG)
                             LogHelper.d(bean);
                         // 下载中
-                        subscriber.onNext(progress);
+                        subscriber.onNext(bean);
                     }
                     fos.flush();
                     // 下载完成
+                    bean.progress = 100;
                     bean.status = 1;
                     if (OkHttpInfo.isLOG)
                         LogHelper.d(bean);

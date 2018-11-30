@@ -12,13 +12,13 @@ import java.io.IOException;
  * @author myLove
  */
 
-public class FileUtil {
+class FileUtil {
     /**
      * @param saveDir
      * @return
      * @throws IOException 判断下载目录是否存在
      */
-    public static String isExistDir(String saveDir) throws IOException {
+    static String isExistDir(String saveDir) throws IOException {
         // 下载位置
         File downloadFile = new File(Environment.getExternalStorageDirectory(), saveDir);
         if (!downloadFile.mkdirs()) {

@@ -3,7 +3,6 @@ package com.mylove.okhttp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import com.mylove.okhttp.listener.OnDownloadCallBack;
 import com.mylove.okhttp.listener.OnDownloadListener;
 
 /**
@@ -45,13 +44,13 @@ public class DownloadRequest {
 
     /**
      * @param filePath           储存下载文件的SDCard目录
-     * @param onDownloadCallBack 监听
+     * @param downloadObserver 监听
      */
-    public void downloads(String filePath, OnDownloadCallBack onDownloadCallBack) {
+    public void downloads(String filePath,DownloadObserver downloadObserver) {
         //saveDir判断不能为空
         if (FormatUtil.isEmpty(filePath)) {
             throw new NullPointerException("filePath is the SDCard directory of the downloaded file, cannot be empty.");
         }
-        DownloadObservables.getInstance(mContext).request(url, filePath, onDownloadCallBack);
+        DownloadObservables.getInstance(mContext).request(url, filePath, downloadObserver);
     }
 }
