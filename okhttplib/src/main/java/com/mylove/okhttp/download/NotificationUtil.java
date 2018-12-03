@@ -1,4 +1,4 @@
-package com.mylove.okhttp;
+package com.mylove.okhttp.download;
 
 import android.app.Activity;
 import android.app.Notification;
@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.widget.RemoteViews;
+
+import com.mylove.okhttp.R;
 
 import java.util.HashMap;
 import java.util.Map;

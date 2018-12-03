@@ -18,13 +18,13 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".MainActivity">
-
-        </activity>
-        <activity android:name=".DownloadActivity">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
+        </activity>
+        <activity android:name=".DownloadActivity">
+
         </activity>
         <!-- 定义FileProvider -->
         <provider

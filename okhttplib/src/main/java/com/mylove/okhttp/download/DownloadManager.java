@@ -2,7 +2,6 @@ package com.mylove.okhttp.download;
 
 import android.content.Context;
 
-import com.mylove.okhttp.FileUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -119,7 +118,7 @@ public class DownloadManager {
 
     private DownloadInfo getRealFileName(DownloadInfo downloadInfo) throws Exception {
         String fileName = downloadInfo.getFileName();
-        String savePath = FileUtil.isExistDir(mContext.getPackageName() + "/download");
+        String savePath = FileUtil.isExistDir(mContext.getPackageName());
         long downloadLength = 0, contentLength = downloadInfo.getTotal();
         File file = new File(savePath, fileName);
         if (file.exists()) {
@@ -172,7 +171,7 @@ public class DownloadManager {
             Call call = mClient.newCall(request);
             downCalls.put(url, call);//把这个添加到call里,方便取消
             Response response = call.execute();
-            String savePath = FileUtil.isExistDir(mContext.getPackageName() + "/download");
+            String savePath = FileUtil.isExistDir(mContext.getPackageName());
             File file = new File(savePath, downloadInfo.getFileName());
             InputStream is = null;
             FileOutputStream fileOutputStream = null;
