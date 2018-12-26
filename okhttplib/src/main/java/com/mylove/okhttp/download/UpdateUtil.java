@@ -10,11 +10,15 @@ import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
-import android.widget.ProgressBar;
 
+import com.mylove.okhttp.DownloadBean;
+import com.mylove.okhttp.DownloadObserver;
 import com.mylove.okhttp.LogHelper;
+import com.mylove.okhttp.OkHttpUtil;
 
 import java.io.File;
+
+import io.reactivex.disposables.Disposable;
 
 /**
  * @author BenYanYi
@@ -32,15 +36,14 @@ public class UpdateUtil {
     private static boolean isLimit = false;//是否可以关闭
 
     private boolean isShowNotice = false;//是否显示通知栏
+    private boolean isShowProgress = false;//是否显示下载进度弹窗
 
     private int icon;
 
     private NotificationUtil notificationUtil;
+    private ProgressDialog progressDialog;
 
     private Class<?> aClass;
-
-    private ProgressDialog progressDialog;
-    private ProgressBar progressBar;
 
     private static boolean isInstallApk = false;
     private UpdateObserver updateObserver;
@@ -88,6 +91,16 @@ public class UpdateUtil {
      */
     public UpdateUtil setLimit(boolean limit) {
         isLimit = limit;
+        return this;
+    }
+
+    /**
+     * 是否显示下载进度弹窗
+     *
+     * @param showProgress
+     */
+    public UpdateUtil setShowProgress(boolean showProgress) {
+        isShowProgress = showProgress;
         return this;
     }
 
@@ -151,11 +164,9 @@ public class UpdateUtil {
         if (FormatUtil.isEmpty(message)) {
             message = "是否下载";
         }
-        if (isShowNotice) {
-            notificationUtil = new NotificationUtil(mActivity, icon, title);
-            if (aClass != null) {
-                notificationUtil.setClass(aClass);
-            }
+        notificationUtil = new NotificationUtil(mActivity, icon, title);
+        if (aClass != null) {
+            notificationUtil.setClass(aClass);
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         if (icon != 0) {
@@ -167,7 +178,7 @@ public class UpdateUtil {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
-                progressDialog();
+                download();
             }
         });
         if (!isLimit) {
@@ -183,25 +194,25 @@ public class UpdateUtil {
         }
         builder.setCancelable(!isLimit);
         builder.show();
-
     }
 
     /**
      * 进度条
      */
-    private void progressDialog() {
-        progressDialog = new ProgressDialog(mContext);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setTitle(title);
-        progressDialog.setMessage("正在下载");
-//        progressDialog.setMax(100);
+    private ProgressDialog getProgressDialog() {
+        if (progressDialog == null) {
+            ProgressDialog progressDialog1 = new ProgressDialog(mContext);
+            progressDialog1.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog1.setTitle(title);
+            progressDialog1.setMessage("正在下载");
+            progressDialog1.setMax(100);
 //        progressDialog.setProgress(0);
-//        // 设置ProgressDialog 的进度条是否不明确
-//        progressDialog.setIndeterminate(false);
-        progressDialog.setCancelable(false);
-        if (icon != 0)
-            progressDialog.setIcon(icon);
-        progressDialog.show();
+            // 设置ProgressDialog 的进度条是否不明确
+            progressDialog1.setIndeterminate(false);
+            progressDialog1.setCancelable(false);
+            if (icon != 0)
+                progressDialog1.setIcon(icon);
+//            progressDialog1.show();
 //        progressDialog = new AlertDialog.Builder(mActivity);
 //        progressDialog.setTitle(title);
 //        progressDialog.setMessage("正在下载");
@@ -215,97 +226,78 @@ public class UpdateUtil {
 //        }
 //        progressDialog.setCancelable(false);
 //        progressDialog.show();
-        notificationUtil.showNotification(1020);
-        download();
+            progressDialog = progressDialog1;
+        }
+        return progressDialog;
     }
 
     /**
      * 下载
      */
     private void download() {
+        if (isShowProgress) {
+            getProgressDialog().show();
+        }
+        if (isShowNotice) {
+            notificationUtil.showNotification(1020);
+        }
         if (FormatUtil.isEmpty(filePath)) {
             filePath = mActivity.getPackageName();
         }
-        DownloadManager.getInstance(mContext).download(downloadUrl, new DownLoadObserver() {
+        OkHttpUtil.getInstance(mActivity).downloadFile(downloadUrl).downloads(filePath, new DownloadObserver() {
             @Override
-            public void onComplete() {
-
-            }
-
-            @Override
-            public void onNext(DownloadInfo downloadInfo) {
-                super.onNext(downloadInfo);
-                LogHelper.v(downloadInfo);
-                int progress = (int) (downloadInfo.getProgress() * 1.0f / downloadInfo.getTotal() * 100);
-                if (notificationUtil != null && isShowNotice) {
-                    notificationUtil.updateProgressText(1020, progress, "已下载" + progress + "%");
-                }
-                LogHelper.v("进度" + progress);
-                progressDialog.setMessage("已下载" + progress + "%");
-                progressDialog.setMax(100);
-                progressDialog.setProgress(progress);
-                if (downloadInfo.getProgress() == downloadInfo.getTotal()) {
-                    d.dispose();
-                    if (isInstallApk && FileUtil.ifUrl(downloadInfo.getFile().getPath(), ".apk")) {
-                        installApk(downloadInfo.getFile());
+            public void onNext(DownloadBean downloadBean) {
+                LogHelper.v(downloadBean);
+                if (downloadBean != null && downloadBean.status == 0) {
+                    if (notificationUtil != null && isShowNotice) {
+                        notificationUtil.updateProgressText(1020, downloadBean.progress, "已下载" + downloadBean.progress + "%");
                     }
-                }
+                    LogHelper.v("进度" + downloadBean.progress);
+                    if (isShowProgress) {
+                        getProgressDialog().setMessage("已下载" + downloadBean.progress + "%");
+                        getProgressDialog().setProgress(downloadBean.progress);
+                    }
 //                    Message message = new Message();
 //                    message.obj = downloadBean;
 //                    mHandler.sendMessage(message);
+                } else if (downloadBean != null && downloadBean.status == 1) {
+                    if (isShowNotice) {
+                        notificationUtil.cancel(1020);
+                    }
+                    if (isInstallApk && FileUtil.ifUrl(downloadBean.filePath, ".apk")) {
+                        installApk(new File(downloadBean.filePath));
+                    }
+                    d.dispose();
+                }
+                if (updateObserver != null) {
+                    updateObserver.onNext(downloadBean);
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                super.onError(e);
+                if (updateObserver != null) {
+                    updateObserver.onError(e);
+                }
+            }
+
+            @Override
+            public void onComplete() {
+                super.onComplete();
+                if (updateObserver != null) {
+                    updateObserver.onComplete();
+                }
+            }
+
+            @Override
+            public void onSubscribe(Disposable d) {
+                super.onSubscribe(d);
+                if (updateObserver != null) {
+                    updateObserver.onSubscribe(d);
+                }
             }
         });
-//        OkHttpUtil.getInstance(mActivity).downloadFile(downloadUrl).downloads(filePath, new DownloadObserver() {
-//            @Override
-//            public void onNext(DownloadBean downloadBean) {
-//                LogHelper.v(downloadBean);
-//                if (downloadBean != null && downloadBean.status == 0) {
-//                    if (notificationUtil != null && isShowNotice) {
-//                        notificationUtil.updateProgressText(1020, downloadBean.progress, "已下载" + downloadBean.progress + "%");
-//                    }
-//                    LogHelper.v("进度" + downloadBean.progress);
-//                    progressDialog.setMessage("已下载" + downloadBean.progress + "%");
-//                    progressDialog.setMax(100);
-//                    progressDialog.setProgress(downloadBean.progress);
-////                    Message message = new Message();
-////                    message.obj = downloadBean;
-////                    mHandler.sendMessage(message);
-//                } else if (downloadBean != null && downloadBean.status == 1) {
-//                    d.dispose();
-//                    notificationUtil.cancel(1020);
-//                    if (isInstallApk && FileUtil.ifUrl(downloadBean.filePath, ".apk")) {
-//                        installApk(new File(downloadBean.filePath));
-//                    }
-//                }
-//                if (updateObserver != null) {
-//                    updateObserver.onNext(downloadBean);
-//                }
-//            }
-//
-//            @Override
-//            public void onError(Throwable e) {
-//                super.onError(e);
-//                if (updateObserver != null) {
-//                    updateObserver.onError(e);
-//                }
-//            }
-//
-//            @Override
-//            public void onComplete() {
-//                super.onComplete();
-//                if (updateObserver != null) {
-//                    updateObserver.onComplete();
-//                }
-//            }
-//
-//            @Override
-//            public void onSubscribe(Disposable d) {
-//                super.onSubscribe(d);
-//                if (updateObserver != null) {
-//                    updateObserver.onSubscribe(d);
-//                }
-//            }
-//        });
     }
 
     /**

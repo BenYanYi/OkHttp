@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("更新测试")
                 .setLimit(false)
                 .setShowNotice(true)
+                .setShowProgress(true)
                 .setInstallApk(true)
                 .setStartClass(MainActivity.class);
         updateUtil.request();
