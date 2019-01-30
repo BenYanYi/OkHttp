@@ -13,9 +13,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -55,6 +53,7 @@ public class DownloadObservables {
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
                             .writeTimeout(30, TimeUnit.SECONDS)
+                            .sslSocketFactory(SSLConfig.createSSLSocketFactory())//支持HTTPS请求，跳过证书验证
                             .build();
                 }
             }
@@ -83,28 +82,6 @@ public class DownloadObservables {
             }
         });
     }
-
-    private Observable<DownloadBean> getObservableMap() {
-        return Observable.just(url).flatMap(new Function<String, ObservableSource<DownloadBean>>() {
-            @Override
-            public ObservableSource<DownloadBean> apply(String s) {
-                return Observable.create(new ObservableOnSubscribe<DownloadBean>() {
-                    @Override
-                    public void subscribe(ObservableEmitter<DownloadBean> emitter) {
-                        send(emitter);
-                    }
-                });
-            }
-        });
-    }
-//    private Flowable<DownloadBean> getObservable(final String url) {
-//        return Flowable.create(new FlowableOnSubscribe<DownloadBean>() {
-//            @Override
-//            public void subscribe(FlowableEmitter<DownloadBean> e) throws Exception {
-//                send(url, e);
-//            }
-//        }, BackpressureStrategy.MISSING);
-//    }
 
     private void send(ObservableEmitter<DownloadBean> subscriber) {
         InternetBean bean = Internet.ifInternet(mContext);

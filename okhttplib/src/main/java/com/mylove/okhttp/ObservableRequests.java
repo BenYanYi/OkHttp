@@ -62,6 +62,7 @@ class ObservableRequests<T> {
                             .connectTimeout(30, TimeUnit.SECONDS)
                             .readTimeout(30, TimeUnit.SECONDS)
                             .writeTimeout(30, TimeUnit.SECONDS)
+                            .sslSocketFactory(SSLConfig.createSSLSocketFactory())//支持HTTPS请求，跳过证书验证
                             .build();
                 }
             }
