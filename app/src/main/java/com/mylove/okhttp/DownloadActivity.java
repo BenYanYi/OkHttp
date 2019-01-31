@@ -12,6 +12,8 @@ import com.mylove.loglib.JLog;
 import com.mylove.okhttp.download.DownLoadObserver;
 import com.mylove.okhttp.download.DownloadInfo;
 import com.mylove.okhttp.download.DownloadManager;
+import com.mylove.okhttp.download.UpdateObserver;
+import com.mylove.okhttp.download.UpdateUtil;
 
 /**
  * @author BenYanYi
@@ -34,25 +36,38 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_download);
         mContext = this;
-        downloadBtn1 = bindView(R.id.main_btn_down1);
-        downloadBtn2 = bindView(R.id.main_btn_down2);
-        downloadBtn3 = bindView(R.id.main_btn_down3);
+//        downloadBtn1 = bindView(R.id.main_btn_down1);
+//        downloadBtn2 = bindView(R.id.main_btn_down2);
+//        downloadBtn3 = bindView(R.id.main_btn_down3);
+//
+//        cancelBtn1 = bindView(R.id.main_btn_cancel1);
+//        cancelBtn2 = bindView(R.id.main_btn_cancel2);
+//        cancelBtn3 = bindView(R.id.main_btn_cancel3);
+//
+//        progress1 = bindView(R.id.main_progress1);
+//        progress2 = bindView(R.id.main_progress2);
+//        progress3 = bindView(R.id.main_progress3);
+//
+//        downloadBtn1.setOnClickListener(this);
+//        downloadBtn2.setOnClickListener(this);
+//        downloadBtn3.setOnClickListener(this);
+//
+//        cancelBtn1.setOnClickListener(this);
+//        cancelBtn2.setOnClickListener(this);
+//        cancelBtn3.setOnClickListener(this);
+      UpdateUtil updateUtil=  new UpdateUtil(mContext,this,url1);
+      updateUtil.update();
+      updateUtil.setUpdateObserver(new UpdateObserver() {
+          @Override
+          protected void onSuccess(DownloadBean downloadBean) {
+              JLog.d(downloadBean);
+          }
 
-        cancelBtn1 = bindView(R.id.main_btn_cancel1);
-        cancelBtn2 = bindView(R.id.main_btn_cancel2);
-        cancelBtn3 = bindView(R.id.main_btn_cancel3);
+          @Override
+          public void onError(Throwable e) {
 
-        progress1 = bindView(R.id.main_progress1);
-        progress2 = bindView(R.id.main_progress2);
-        progress3 = bindView(R.id.main_progress3);
-
-        downloadBtn1.setOnClickListener(this);
-        downloadBtn2.setOnClickListener(this);
-        downloadBtn3.setOnClickListener(this);
-
-        cancelBtn1.setOnClickListener(this);
-        cancelBtn2.setOnClickListener(this);
-        cancelBtn3.setOnClickListener(this);
+          }
+      });
     }
 
     @Override

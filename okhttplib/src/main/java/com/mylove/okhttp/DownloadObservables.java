@@ -2,7 +2,11 @@ package com.mylove.okhttp;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
+
+import com.mylove.okhttp.listener.OnDownloadListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,13 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -38,6 +35,7 @@ public class DownloadObservables {
     private static OkHttpClient okHttpClient;
     private String filePaths = "";
     private String url;
+    private OnDownloadListener downloadListener;
 
     private DownloadObservables() {
     }
@@ -63,78 +61,46 @@ public class DownloadObservables {
         return instance;
     }
 
-    void request(String url, String filePath, DownloadObserver downloadObserver) {
+    void request(String url, String filePath, OnDownloadListener onDownloadListener) {
         this.filePath = filePath;
         this.url = url;
-//        getObservableMap()
-        getObservable()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribeOn(Schedulers.newThread())
-//                .observeOn(Schedulers.newThread())
-                .subscribe(downloadObserver);
+        this.downloadListener = onDownloadListener;
+        send();
     }
 
-    private Observable<DownloadBean> getObservable() {
-        return Observable.create(new ObservableOnSubscribe<DownloadBean>() {
-            @Override
-            public void subscribe(ObservableEmitter<DownloadBean> emitter) {
-                send(emitter);
-            }
-        });
-    }
-
-    private Observable<DownloadBean> getObservableMap() {
-        return Observable.just(url).flatMap(new Function<String, ObservableSource<DownloadBean>>() {
-            @Override
-            public ObservableSource<DownloadBean> apply(String s) {
-                return Observable.create(new ObservableOnSubscribe<DownloadBean>() {
-                    @Override
-                    public void subscribe(ObservableEmitter<DownloadBean> emitter) {
-                        send(emitter);
-                    }
-                });
-            }
-        });
-    }
-//    private Flowable<DownloadBean> getObservable(final String url) {
-//        return Flowable.create(new FlowableOnSubscribe<DownloadBean>() {
-//            @Override
-//            public void subscribe(FlowableEmitter<DownloadBean> e) throws Exception {
-//                send(url, e);
-//            }
-//        }, BackpressureStrategy.MISSING);
-//    }
-
-    private void send(ObservableEmitter<DownloadBean> subscriber) {
+    private void send() {
         InternetBean bean = Internet.ifInternet(mContext);
         if (bean.getStatus()) {
             Request request = new Request.Builder()
                     .url(url)
                     .build();
             Call call = okHttpClient.newCall(request);
-            sendCall(url, call, subscriber);
+            sendCall(url, call);
         } else {
-            subscriber.onError(new Exception(bean.getMsg()));
+            if (downloadListener != null) {
+                downloadListener.onFailure(new Throwable(bean.getMsg()));
+            }
         }
     }
 
     /**
      * 请求
      */
-    private void sendCall(final String url, Call call, final ObservableEmitter<DownloadBean> subscriber) {
+    private void sendCall(final String url, Call call) {
 
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (OkHttpInfo.isLOG)
                     LogHelper.e(e.getMessage());
-                subscriber.onError(e);
+                if (downloadListener != null) {
+                    downloadListener.onFailure(e);
+                }
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                DownloadBean bean = new DownloadBean();
+                final DownloadBean bean = new DownloadBean();
                 InputStream is = null;
                 byte[] buf = new byte[2048];
                 int len = 0;
@@ -144,8 +110,8 @@ public class DownloadObservables {
                 try {
                     is = response.body().byteStream();
                     long total = response.body().contentLength();
-                    File file = new File(savePath, FileUtil.getNameFromUrl(url));
-                    bean.filePath = file.getAbsolutePath();
+                    File file = new File(savePath);
+                    bean.filePath = savePath;
                     if (OkHttpInfo.isLOG)
                         LogHelper.d(filePath);
                     fos = new FileOutputStream(file);
@@ -153,7 +119,7 @@ public class DownloadObservables {
                     while ((len = is.read(buf)) != -1) {
                         fos.write(buf, 0, len);
                         sum += len;
-                        int progress = (int) (sum * 1.0f / total * 100);
+                        final int progress = (int) (sum * 1.0f / total * 100);
                         if (OkHttpInfo.isLOG)
                             LogHelper.i(progress + "%");
                         bean.status = 0;
@@ -161,7 +127,15 @@ public class DownloadObservables {
                         if (OkHttpInfo.isLOG)
                             LogHelper.d(bean);
                         // 下载中
-                        subscriber.onNext(bean);
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                Message message = new Message();
+                                message.obj = progress;
+                                message.what = 1;
+                                mHandler.sendMessage(message);
+                            }
+                        }.start();
                     }
                     fos.flush();
                     // 下载完成
@@ -170,10 +144,28 @@ public class DownloadObservables {
                     if (OkHttpInfo.isLOG)
                         LogHelper.d(bean);
                     filePaths = file.getAbsolutePath();
-                } catch (Exception e) {
+                    // 下载中
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            Message message = new Message();
+                            message.obj = bean;
+                            message.what = 2;
+                            mHandler.sendMessage(message);
+                        }
+                    }.start();
+                } catch (final Exception e) {
                     if (OkHttpInfo.isLOG)
                         LogHelper.e(e.getMessage());
-                    subscriber.onError(e);
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            Message message = new Message();
+                            message.obj = e;
+                            message.what = 3;
+                            mHandler.sendMessage(message);
+                        }
+                    }.start();
                 } finally {
                     try {
                         if (is != null)
@@ -190,8 +182,42 @@ public class DownloadObservables {
                             LogHelper.e(e.getMessage());
                     }
                 }
-                subscriber.onComplete();
+                new Thread() {
+                    @Override
+                    public void run() {
+                        mHandler.sendEmptyMessage(0);
+                    }
+                }.start();
             }
         });
     }
+
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            int what = msg.what;
+            if (what == 0) {
+                if (downloadListener != null) {
+                    downloadListener.onCompleted();
+                }
+            } else if (what == 1) {
+                int progress = (int) msg.obj;
+                if (downloadListener != null) {
+                    downloadListener.onDownloading(progress);
+                }
+            } else if (what == 2) {
+                DownloadBean bean = (DownloadBean) msg.obj;
+                if (downloadListener != null) {
+                    downloadListener.onDownloading(bean.progress);
+                    downloadListener.onSuccess(bean);
+                }
+            } else if (what == 3) {
+                Exception exception = (Exception) msg.obj;
+                if (downloadListener != null) {
+                    downloadListener.onFailure(exception);
+                }
+            }
+        }
+    };
 }

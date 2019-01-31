@@ -1,11 +1,6 @@
 package com.mylove.okhttp.download;
 
 import com.mylove.okhttp.DownloadBean;
-import com.mylove.okhttp.DownloadObserver;
-import com.mylove.okhttp.LogHelper;
-
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 
 /**
  * @author BenYanYi
@@ -13,22 +8,15 @@ import io.reactivex.disposables.Disposable;
  * @email ben@yanyi.red
  * @overview
  */
-public abstract class UpdateObserver extends DownloadObserver implements Observer<DownloadBean> {
-    @Override
-    public void onSubscribe(Disposable d) {
-        super.onSubscribe(d);
+public abstract class UpdateObserver {
+
+    protected abstract void onSuccess(DownloadBean downloadBean);
+
+    protected void onComplete() {
+
     }
 
-    @Override
-    public void onComplete() {
-        super.onComplete();
-    }
-
-    @Override
-    public void onError(Throwable e) {
-        super.onError(e);
-        LogHelper.e("UpdateUtil--->>" + e.getMessage());
-    }
+    public abstract void onError(Throwable e);
 
     protected void onDialogDismiss() {
     }
