@@ -35,6 +35,7 @@ class DownloadObservable {
     @SuppressLint("StaticFieldLeak")
     private static Context mContext;
     private String filePath;
+    private String fileName;
     private static OkHttpClient okHttpClient;
 
     private DownloadObservable() {
@@ -62,8 +63,9 @@ class DownloadObservable {
         return instance;
     }
 
-    void request(String url, String filePath, final OnDownloadListener onDownloadListener) {
+    void request(String url, String filePath, String fileName, final OnDownloadListener onDownloadListener) {
         this.filePath = filePath;
+        this.fileName = fileName;
         getObservable(url)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -81,7 +83,7 @@ class DownloadObservable {
                         if (bean.status == 1) {
                             onDownloadListener.onSuccess(bean.filePath);
                         } else {
-                            onDownloadListener.onDownloading(bean.progress);
+                            onDownloadListener.onDownloading();
                         }
                     }
 
@@ -127,7 +129,6 @@ class DownloadObservable {
      * 请求
      */
     private void sendCall(final String url, Call call, final ObservableEmitter<DownloadBean> subscriber) {
-
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -149,7 +150,12 @@ class DownloadObservable {
                 try {
                     is = response.body().byteStream();
                     long total = response.body().contentLength();
-                    File file = new File(savePath, FileUtil.getNameFromUrl(url));
+                    File file;
+                    if (FormatUtil.isEmpty(fileName)) {
+                        file = new File(savePath, FileUtil.getNameFromUrl(url));
+                    } else {
+                        file = new File(savePath, fileName);
+                    }
                     bean.filePath = file.getAbsolutePath();
                     if (OkHttpInfo.isLOG)
                         LogHelper.d(filePath);
@@ -158,11 +164,7 @@ class DownloadObservable {
                     while ((len = is.read(buf)) != -1) {
                         fos.write(buf, 0, len);
                         sum += len;
-                        int progress = (int) (sum * 1.0f / total * 100);
-                        if (OkHttpInfo.isLOG)
-                            LogHelper.i(progress + "%");
                         bean.status = 0;
-                        bean.progress = progress;
                         if (OkHttpInfo.isLOG)
                             LogHelper.d(bean);
                         // 下载中

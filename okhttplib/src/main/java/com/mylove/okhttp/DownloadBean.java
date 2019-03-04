@@ -7,14 +7,12 @@ package com.mylove.okhttp;
  * @overview 下载状态
  */
 public class DownloadBean {
-    public int progress;
     public int status = 0;
     public String filePath;
 
     @Override
     public String toString() {
         return "DownloadBean{" +
-                "progress=" + progress +
                 ", status=" + status +
                 ", filePath='" + filePath + '\'' +
                 '}';

@@ -7,8 +7,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.mylove.loglib.JLog;
-import com.mylove.okhttp.download.UpdateObserver;
-import com.mylove.okhttp.download.UpdateUtil;
 import com.mylove.okhttp.listener.OnOkHttpListener;
 import com.yanyi.permissionlib.PermissionHelper;
 import com.yanyi.permissionlib.PermissionType;
@@ -96,27 +94,6 @@ public class MainActivity extends AppCompatActivity {
 //                JLog.e(t.getMessage());
 //            }
 //        });
-        UpdateUtil updateUtil = new UpdateUtil(this, this, url)
-                .setIcon(R.mipmap.ic_launcher)
-                .setMessage("更新")
-                .setTitle("更新测试")
-                .setLimit(false)
-                .setShowNotice(true)
-                .setShowProgress(true)
-                .setInstallApk(true)
-                .setStartClass(MainActivity.class);
-        updateUtil.update();
-        updateUtil.setUpdateObserver(new UpdateObserver() {
-            @Override
-            protected void onSuccess(DownloadBean downloadBean) {
-                JLog.d(downloadBean);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-        });
     }
 
     @Override

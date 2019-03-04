@@ -12,8 +12,6 @@ import com.mylove.loglib.JLog;
 import com.mylove.okhttp.download.DownLoadObserver;
 import com.mylove.okhttp.download.DownloadInfo;
 import com.mylove.okhttp.download.DownloadManager;
-import com.mylove.okhttp.download.UpdateObserver;
-import com.mylove.okhttp.download.UpdateUtil;
 
 /**
  * @author BenYanYi
@@ -55,19 +53,6 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
 //        cancelBtn1.setOnClickListener(this);
 //        cancelBtn2.setOnClickListener(this);
 //        cancelBtn3.setOnClickListener(this);
-      UpdateUtil updateUtil=  new UpdateUtil(mContext,this,url1);
-      updateUtil.update();
-      updateUtil.setUpdateObserver(new UpdateObserver() {
-          @Override
-          protected void onSuccess(DownloadBean downloadBean) {
-              JLog.d(downloadBean);
-          }
-
-          @Override
-          public void onError(Throwable e) {
-
-          }
-      });
     }
 
     @Override

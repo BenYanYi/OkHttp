@@ -8,7 +8,7 @@ package com.mylove.okhttp.listener;
  */
 public interface OnDownloadListener extends OnOkHttpListener {
     /**
-     * @param progress 下载进度
+     * 下载中
      */
-    void onDownloading(int progress);
+    void onDownloading();
 }

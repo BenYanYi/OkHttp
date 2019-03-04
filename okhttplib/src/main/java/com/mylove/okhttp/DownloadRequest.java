@@ -5,8 +5,6 @@ import android.content.Context;
 
 import com.mylove.okhttp.listener.OnDownloadListener;
 
-import java.io.File;
-
 /**
  * @author myLove
  */
@@ -41,19 +39,21 @@ public class DownloadRequest {
         if (FormatUtil.isEmpty(filePath)) {
             throw new NullPointerException("filePath is the SDCard directory of the downloaded file, cannot be empty.");
         }
-        DownloadObservable.getInstance(mContext).request(url, filePath, onDownloadListener);
+        DownloadObservable.getInstance(mContext).request(url, filePath, "", onDownloadListener);
     }
 
     /**
-     * @param filePath         储存下载文件的SDCard目录
-     * @param downloadListener 监听
+     * @param filePath           储存下载文件的SDCard目录
+     * @param fileName           文件名称
+     * @param onDownloadListener 监听
      */
-    public void downloads(String filePath, OnDownloadListener downloadListener) {
+    @Deprecated
+    public void download(String filePath, String fileName, OnDownloadListener onDownloadListener) {
         //saveDir判断不能为空
         if (FormatUtil.isEmpty(filePath)) {
-            File file = new File(mContext.getPackageName(), FileUtil.getNameFromUrl(url));
-            filePath = file.getPath();
+            throw new NullPointerException("filePath is the SDCard directory of the downloaded file, cannot be empty.");
         }
-        DownloadObservables.getInstance(mContext).request(url, filePath, downloadListener);
+        DownloadObservable.getInstance(mContext).request(url, filePath, fileName, onDownloadListener);
     }
+
 }
