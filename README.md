@@ -2,31 +2,12 @@
 ## OkHttp请求封装
 ### 使用方法
 
-#### 方法一(老版,已停止维护)
 module 下添加
 
-     compile 'com.github.BenYanYi:OkHttp:1.1.6'
-
-<br/>
-project 下添加
-
-    allprojects {
-        repositories {
-            jcenter()
-            maven {
-                url 'https://jitpack.io'
-            }
-        }
-    }
-
-<br/>
-
-#### 方法二(最新)
-module 下添加
-
-    compile 'com.yanyi.benyanyi:okhttplib:1.1.1'
+    compile 'com.yanyi.benyanyi:okhttplib:1.1.2'
     
 ### 更新记录
+* 2019/03/06(1.1.2) 去除在线更新方法，将在线更新单独做开源库，去除多余下载方法，减少库大小
 * 2018/11/20(1.1.1) 添加带弹窗下载方法(UpdateUtil类),支持下载弹窗提示，下载进度弹窗，下载进度通知栏，强行下载,多文件下载类(DownloadManager)(支持取消下载)
 * 2018/10/10(1.1.0) 添加写入超时限定
 * 2018/09/28(1.0.9) 添加自定义Request方法
